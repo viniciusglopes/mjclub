@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/*
+ * Paleta MJCLUB: carvão + dourado. O dourado é o acento da marca e só aparece
+ * no que é ação ou benefício, para não virar ruído.
+ */
+@theme {
+  --color-ink: #0e0e10;
+  --color-surface: #17171a;
+  --color-surface-2: #1f1f23;
+  --color-line: #2b2b31;
+  --color-cream: #f5f3ef;
+  --color-muted: #a39e96;
+  --color-gold: #c8a24a;
+  --color-gold-soft: #e2c684;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: var(--color-gold);
+  color: var(--color-ink);
+}
+
+/* Foco visível e consistente em toda a navegação por teclado. */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
