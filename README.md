@@ -41,14 +41,21 @@ MJ Barbearia, nenhuma infraestrutura necessária.
 ## Verificação
 
 ```bash
-npm run smoke   # 15 checagens do domínio contra o driver demo
-npm run build   # build de produção + typecheck
-npx eslint src  # lint
+npm run smoke    # 15 checagens do domínio contra o driver demo
+npm run test:db  # 40 asserções de schema, constraints e RLS num Postgres real
+npm run build    # build de produção + typecheck
+npx eslint src   # lint
 ```
 
 O `smoke` cobre catálogo, regra de preço de membro, geração de horários,
 reserva com desconto, recusa de horário ocupado, carteirinha e o ciclo de
 resgate (gerar → validar → recusar reuso → limite por membro).
+
+O `test:db` sobe um Postgres descartável, aplica as migrations na ordem e
+verifica o que o banco precisa garantir sozinho: sobreposição de agenda,
+assinatura ativa única por perfil e o isolamento de RLS por papel (visitante,
+membro, equipe, parceiro). Precisa do `postgresql-16` instalado; aponte `PGBIN`
+se estiver em outro caminho. Não toca em nenhum projeto Supabase.
 
 ## Apontando para o Supabase
 

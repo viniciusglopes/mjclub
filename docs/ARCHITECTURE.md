@@ -92,11 +92,18 @@ Roadmap: subdomínio (`mjbarbearia.mjclub.com.br`) ou path `/b/[slug]`.
 O seed TypeScript e o seed SQL (`supabase/migrations/0002_seed.sql`) descrevem
 os **mesmos dados**, então a tela não muda ao trocar de driver.
 
-Estado de verificação: o driver `demo` é exercitado por `npm run smoke` e pelos
-fluxos HTTP da POC. O driver `supabase` foi escrito contra o schema de
-`supabase/migrations/`, mas **ainda não rodou contra um projeto Supabase real** —
-a conta bateu no limite de 2 projetos gratuitos. Vale uma passada pelos fluxos
-principais assim que o projeto existir.
+Estado de verificação:
+
+| Camada | Como é verificada |
+| --- | --- |
+| Schema, constraints e RLS | `npm run test:db` — aplica as migrations num Postgres descartável e roda 40 asserções (ver §9) |
+| Driver `demo` | `npm run smoke` + os fluxos HTTP da POC |
+| Driver `supabase` | **ainda não verificado** — as queries falam PostgREST, que só existe dentro de um projeto Supabase |
+
+O driver `supabase` foi escrito contra o mesmo schema que os testes validam,
+mas nenhuma query dele rodou de verdade: a conta bateu no limite de 2 projetos
+gratuitos. É o único ponto da entrega sem cobertura, e a primeira coisa a fazer
+quando o projeto existir.
 
 ## 6. Estrutura de pastas
 
@@ -132,11 +139,32 @@ Explícito para não virar dívida escondida:
   por gateway.
 - Não há rate limit no agendamento público nem verificação do telefone.
 
-## 8. Roadmap
+## 8. Testes de banco
+
+`supabase/tests/` guarda o que o banco precisa garantir **sozinho**, sem ajuda
+da aplicação. `scripts/test-migrations.sh` sobe um Postgres descartável, aplica
+as migrations na ordem e roda as asserções:
+
+- `00_supabase_stub.sql` — recria o mínimo que o Supabase provê (schema `auth`,
+  `auth.uid()`, papéis `anon`/`authenticated`) para as migrations rodarem num
+  Postgres comum. Nunca vai para o projeto Supabase.
+- `01_helpers.sql` — `assert_eq`, `outcome` (o banco aceitou ou recusou?) e
+  `visible_rows` (quantas linhas um papel enxerga).
+- `02_constraints.sql` — seed correto e as garantias da agenda: sobreposição
+  recusada no mesmo profissional, permitida em outro, horário encostado
+  permitido, cancelado liberando a vaga, assinatura ativa única por perfil.
+- `03_rls.sql` — isolamento por papel: o visitante só vê a vitrine, o membro só
+  o que é dele, a equipe o tenant inteiro, o parceiro só os resgates das
+  próprias ofertas.
+
+O teste não toca em nenhum projeto Supabase.
+
+## 9. Roadmap
 
 **Fase 1 — POC (esta entrega)**
 Landing, agendamento, clube, carteirinha, painel da barbearia, painel do parceiro.
-Falta ligar num projeto Supabase e trocar o código da carteirinha por um QR.
+Falta ligar num projeto Supabase (e com isso exercitar o driver `supabase`) e
+trocar o código da carteirinha por um QR.
 
 **Fase 2 — produção MJ Barbearia**
 Supabase Auth com OTP/WhatsApp · cobrança recorrente · notificação de lembrete
