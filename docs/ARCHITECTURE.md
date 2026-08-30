@@ -96,14 +96,19 @@ Estado de verificação:
 
 | Camada | Como é verificada |
 | --- | --- |
-| Schema, constraints e RLS | `npm run test:db` — aplica as migrations num Postgres descartável e roda 40 asserções (ver §9) |
+| Schema, constraints e RLS | `npm run test:db` — 40 asserções num Postgres descartável |
 | Driver `demo` | `npm run smoke` + os fluxos HTTP da POC |
-| Driver `supabase` | **ainda não verificado** — as queries falam PostgREST, que só existe dentro de um projeto Supabase |
+| Driver `supabase` | `npm run test:driver` — 26 asserções contra um PostgREST real |
 
-O driver `supabase` foi escrito contra o mesmo schema que os testes validam,
-mas nenhuma query dele rodou de verdade: a conta bateu no limite de 2 projetos
-gratuitos. É o único ponto da entrega sem cobertura, e a primeira coisa a fazer
-quando o projeto existir.
+O `test:driver` resolve o que antes dependia de um projeto Supabase existir: o
+PostgREST é a mesma peça que atende `/rest/v1` lá dentro, então rodá-lo sobre o
+Postgres local exercita as queries de verdade — o embed de `staff_services`, o
+`jsonb` dos benefícios, o corte de `HH:MM:SS` para `HH:MM`, a tradução do erro
+da constraint de exclusão e o join que filtra resgates por parceiro.
+
+Sobra um caminho sem cobertura: em `subscribe()`, quando o telefone ainda não
+tem perfil, o driver chama `auth.admin.createUser`. Isso é GoTrue, não
+PostgREST, e só dá para verificar contra um Supabase de verdade.
 
 ## 6. Estrutura de pastas
 
@@ -139,7 +144,7 @@ Explícito para não virar dívida escondida:
   por gateway.
 - Não há rate limit no agendamento público nem verificação do telefone.
 
-## 8. Testes de banco
+## 8. Testes
 
 `supabase/tests/` guarda o que o banco precisa garantir **sozinho**, sem ajuda
 da aplicação. `scripts/test-migrations.sh` sobe um Postgres descartável, aplica
@@ -157,7 +162,13 @@ as migrations na ordem e roda as asserções:
   o que é dele, a equipe o tenant inteiro, o parceiro só os resgates das
   próprias ofertas.
 
-O teste não toca em nenhum projeto Supabase.
+`scripts/test-driver.sh` vai um passo além: sobe o mesmo Postgres, monta os
+papéis do Supabase (`authenticator`, `anon`, `authenticated`, `service_role`),
+levanta um PostgREST com um JWT de `service_role` e roda
+`scripts/driver-supabase.ts` contra ele. Precisa do binário do PostgREST em
+`POSTGREST_BIN`.
+
+Nenhum dos dois toca em projeto Supabase algum.
 
 ## 9. Roadmap
 

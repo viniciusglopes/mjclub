@@ -41,10 +41,11 @@ MJ Barbearia, nenhuma infraestrutura necessária.
 ## Verificação
 
 ```bash
-npm run smoke    # 15 checagens do domínio contra o driver demo
-npm run test:db  # 40 asserções de schema, constraints e RLS num Postgres real
-npm run build    # build de produção + typecheck
-npx eslint src   # lint
+npm run smoke       # 15 checagens do domínio contra o driver demo
+npm run test:db     # 40 asserções de schema, constraints e RLS num Postgres real
+npm run test:driver # 26 asserções do driver supabase contra um PostgREST real
+npm run build       # build de produção + typecheck
+npx eslint src      # lint
 ```
 
 O `smoke` cobre catálogo, regra de preço de membro, geração de horários,
@@ -55,7 +56,16 @@ O `test:db` sobe um Postgres descartável, aplica as migrations na ordem e
 verifica o que o banco precisa garantir sozinho: sobreposição de agenda,
 assinatura ativa única por perfil e o isolamento de RLS por papel (visitante,
 membro, equipe, parceiro). Precisa do `postgresql-16` instalado; aponte `PGBIN`
-se estiver em outro caminho. Não toca em nenhum projeto Supabase.
+se estiver em outro caminho.
+
+O `test:driver` sobe esse mesmo Postgres com os papéis do Supabase e um
+PostgREST na frente — a mesma peça que responde `/rest/v1` num projeto real — e
+roda o driver `supabase` contra ele. Precisa do binário do
+[PostgREST](https://github.com/PostgREST/postgrest/releases) em `POSTGREST_BIN`.
+Fica de fora só o `subscribe()` com telefone novo, que chama `auth.admin`
+(GoTrue) e depende de um Supabase de verdade.
+
+Nenhum dos dois toca em projeto Supabase algum.
 
 ## Apontando para o Supabase
 
