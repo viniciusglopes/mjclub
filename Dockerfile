@@ -34,6 +34,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# O Coolify (e orquestradores em geral) executam o healthcheck DE DENTRO do
+# container, chamando curl ou wget. A imagem base não traz curl, e sem ele o
+# Coolify tenta 10 vezes, desiste e desfaz o deploy achando que a aplicação
+# quebrou — mesmo com o Next já respondendo normalmente por fora.
+RUN apk add --no-cache curl
+
 # Usuário sem privilégios: se alguém escapar do processo, não cai como root.
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
@@ -48,8 +54,8 @@ USER nextjs
 EXPOSE 3000
 
 # Sonda que não toca no banco: instabilidade do Supabase não deve derrubar o
-# container.
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+# container. O start-period dá folga para o primeiro boot antes de contar falha.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD curl --fail --silent --output /dev/null http://127.0.0.1:3000/api/health || exit 1
 
 CMD ["node", "server.js"]

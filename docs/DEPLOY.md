@@ -67,6 +67,14 @@ demonstração, péssimo para produção: nada é gravado de verdade.
 | Health Check Path | `/api/health` |
 | Health Check Port | `3000` |
 
+O Coolify executa essa verificação **de dentro do container**, chamando `curl`.
+A imagem base do Node em Alpine não traz `curl`, e sem ele o Coolify tenta dez
+vezes, desiste e desfaz o deploy achando que a aplicação quebrou — mesmo com o
+Next respondendo normalmente por fora. Por isso o `Dockerfile` instala `curl` no
+estágio final. Se você vir no log algo como *"healthcheck precisa de curl ou
+wget na imagem"*, é sinal de que está rodando uma imagem anterior a essa
+correção: refaça o build.
+
 A sonda responde sem tocar no banco, de propósito: uma instabilidade do
 Supabase não deve fazer o Coolify reiniciar o container. Ela também devolve
 `warnings` quando falta configuração — vale olhar depois do primeiro deploy:
@@ -74,6 +82,12 @@ Supabase não deve fazer o Coolify reiniciar o container. Ela também devolve
 ```bash
 curl https://mjclub.com.br/api/health
 {"status":"ok","driver":"supabase","warnings":[],"at":"..."}
+```
+
+O mesmo comando que o healthcheck roda por dentro:
+
+```bash
+curl --fail --silent --output /dev/null http://127.0.0.1:3000/api/health
 ```
 
 `driver: "demo"` ali significa que as variáveis do Supabase não chegaram.
