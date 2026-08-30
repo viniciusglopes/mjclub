@@ -42,12 +42,20 @@ Todas em **runtime** — nenhuma precisa ser build-time.
 | `SUPABASE_URL` | `https://eoxribqsfhcghgvzndoh.supabase.co` | para usar o banco real |
 | `SUPABASE_SERVICE_ROLE_KEY` | a chave **secret** em Settings › API Keys | idem |
 | `POC_SESSION_SECRET` | `openssl rand -base64 32` | **sim** |
+| `MJCLUB_ADMIN_USER` | usuário do Basic Auth dos painéis | **sim** |
+| `MJCLUB_ADMIN_PASSWORD` | senha do Basic Auth dos painéis | **sim** |
 | `MJCLUB_TENANT_ID` | deixe vazio (usa a MJ Barbearia do seed) | não |
 
 `POC_SESSION_SECRET` não é opcional em produção. Sem ela o app recusa qualquer
 login com erro em vez de assinar cookies com um segredo que está no
 repositório — caso contrário, quem lesse o código entraria no painel da
 barbearia.
+
+`MJCLUB_ADMIN_USER` e `MJCLUB_ADMIN_PASSWORD` protegem `/admin` e `/parceiro`
+com Basic Auth. Também não são opcionais: sem elas, em produção esses caminhos
+respondem 401 para todo mundo — inclusive para você. Fecham em vez de abrir
+porque a alternativa é servir a agenda com telefone dos clientes para quem
+passar pelo endereço.
 
 Sem `SUPABASE_URL` o app sobe assim mesmo, com dados em memória. Útil para uma
 demonstração, péssimo para produção: nada é gravado de verdade.
@@ -94,12 +102,16 @@ npm run check:remote                          # confere o banco de ponta a ponta
 
 ## O que este deploy ainda não resolve
 
-- **Não há autenticação real.** A sessão é um cookie assinado, sem senha nem
-  OTP. Com o site público, qualquer pessoa que chegue em `/entrar` abre o painel
-  da barbearia escolhendo "sou da equipe". Antes de divulgar o endereço, ou
-  troque por Supabase Auth (ver `docs/ARCHITECTURE.md` §7), ou proteja
-  `/admin` e `/parceiro` por outro meio — no Coolify dá para pôr Basic Auth no
-  proxy como paliativo.
+- **Não há autenticação real, só Basic Auth nos painéis.** `/admin` e
+  `/parceiro` estão atrás de usuário e senha (`src/middleware.ts`), o que
+  impede um estranho de abrir a agenda. Mas é uma senha compartilhada: não
+  distingue Mikael de Rafael, não expira, não tem trilha de quem fez o quê, e
+  vai por header em toda requisição. Serve para a POC ficar de pé em público;
+  não serve para operar a barbearia com uma equipe de verdade. O caminho é
+  Supabase Auth com OTP (`docs/ARCHITECTURE.md` §7).
+- **A área do membro (`/minha-conta`) não tem Basic Auth**, de propósito: ela é
+  para o cliente. Quem entra ali só precisa digitar um telefone que já assinou
+  — outro motivo para o OTP não ficar para depois.
 - **Não há backup configurado** além do que o plano gratuito do Supabase provê.
 - **Não há domínio de staging.** Um segundo recurso no Coolify apontando para a
   mesma branch, com outro subdomínio e outro projeto Supabase, resolve quando

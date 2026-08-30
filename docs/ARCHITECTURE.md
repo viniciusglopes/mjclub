@@ -141,6 +141,10 @@ Explícito para não virar dívida escondida:
 - **A sessão da POC é um cookie assinado com `POC_SESSION_SECRET`, sem senha nem
   OTP.** Serve para demonstrar as áreas logadas. Antes de qualquer cliente real,
   trocar por Supabase Auth com OTP por telefone.
+- **`/admin` e `/parceiro` estão atrás de Basic Auth** (`src/middleware.ts`),
+  o que impede um estranho de abrir a agenda com o site publicado. É senha
+  compartilhada: não identifica quem entrou, não expira e não deixa trilha —
+  tapa o buraco, não substitui o login.
 - Não há cobrança: assinar um plano marca a `membership` como ativa sem passar
   por gateway.
 - Não há rate limit no agendamento público nem verificação do telefone.
