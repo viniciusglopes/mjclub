@@ -170,6 +170,10 @@ levanta um PostgREST com um JWT de `service_role` e roda
 
 Nenhum dos dois toca em projeto Supabase algum.
 
+Para um projeto de verdade existe `npm run check:remote`, que é só de leitura:
+confere se o schema foi aplicado, se o catálogo está semeado e — com a
+publishable key — se a RLS barra o visitante de fora.
+
 ## 9. Roadmap
 
 **Fase 1 — POC (esta entrega)**

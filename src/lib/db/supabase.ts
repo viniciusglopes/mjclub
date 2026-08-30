@@ -490,7 +490,14 @@ export class SupabaseRepository implements Repository {
       .in("status", ["pending", "validated"]);
     if (error) throw new Error(error.message);
 
-    if ((count ?? 0) >= offer.maxRedemptionsPerMember) {
+    // `head: true` devolve 204 sem erro quando a tabela não existe, e aí a
+    // contagem vem nula. Tratar nulo como zero liberaria o benefício sem saber
+    // quantos já foram usados — na dúvida, recusa.
+    if (count === null) {
+      throw new Error("Não foi possível conferir o limite deste benefício.");
+    }
+
+    if (count >= offer.maxRedemptionsPerMember) {
       throw new Error("Você já usou este benefício o número máximo de vezes.");
     }
 

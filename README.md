@@ -115,7 +115,17 @@ Preencha com o que está em **Settings › API Keys** do projeto:
 > Ela ignora RLS — nunca prefixe com `NEXT_PUBLIC_`, não comite e não cole em
 > chat.
 
-### 4. Opcional: dados de demonstração
+### 4. Conferir se deu certo
+
+```bash
+npm run check:remote
+```
+
+Só lê — não grava nada. Diz se o schema foi aplicado, se o catálogo está
+semeado e, quando você põe também a publishable key no `.env.local`, se a RLS
+está mesmo barrando o visitante (a checagem que mais importa antes de ir ao ar).
+
+### 5. Opcional: dados de demonstração
 
 `supabase/seeds/demo_users.sql` cria as contas que dão vida às áreas logadas
 (membro, equipe e parceiro). Fica **fora** de `migrations/` de propósito, para o
