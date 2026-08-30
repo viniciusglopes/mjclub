@@ -6,7 +6,7 @@
  * de fato barrando o visitante.
  *
  * Lê .env.local (ou as variáveis do ambiente):
- *   NEXT_PUBLIC_SUPABASE_URL
+ *   SUPABASE_URL  (ou NEXT_PUBLIC_SUPABASE_URL)
  *   SUPABASE_SERVICE_ROLE_KEY
  *   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY  (opcional, para checar a RLS)
  *
@@ -30,13 +30,13 @@ function loadEnvLocal() {
 
 loadEnvLocal();
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 if (!url || !serviceKey) {
   console.error(
-    "Faltam NEXT_PUBLIC_SUPABASE_URL e/ou SUPABASE_SERVICE_ROLE_KEY.\n" +
+    "Faltam SUPABASE_URL e/ou SUPABASE_SERVICE_ROLE_KEY.\n" +
       "Copie .env.example para .env.local e preencha com Settings › API Keys.",
   );
   process.exit(1);

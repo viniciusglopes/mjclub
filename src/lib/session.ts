@@ -13,7 +13,27 @@ import { cookies } from "next/headers";
  */
 
 const COOKIE = "mjclub_poc_session";
-const SECRET = process.env.POC_SESSION_SECRET ?? "mjclub-poc-desenvolvimento";
+
+/**
+ * Segredo que assina o cookie.
+ *
+ * Em desenvolvimento cai num valor fixo, para o app subir sem configuração.
+ * Em produção isso seria grave: o valor está no repositório, então qualquer um
+ * forjaria um cookie de equipe e entraria no painel da barbearia. Ali a falta
+ * da variável derruba a requisição em vez de aceitar um segredo público.
+ */
+function secret(): string {
+  const fromEnv = process.env.POC_SESSION_SECRET;
+  if (fromEnv) return fromEnv;
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "POC_SESSION_SECRET não está definida. Gere uma com `openssl rand -base64 32` " +
+        "e configure no ambiente antes de expor o app.",
+    );
+  }
+  return "mjclub-poc-desenvolvimento";
+}
 
 export type Session =
   // A equipe não carrega profileId: o repositório já está preso a um tenant,
@@ -23,7 +43,7 @@ export type Session =
   | { kind: "partner"; partnerId: string };
 
 function sign(payload: string): string {
-  return createHmac("sha256", SECRET).update(payload).digest("base64url");
+  return createHmac("sha256", secret()).update(payload).digest("base64url");
 }
 
 function verify(payload: string, signature: string): boolean {

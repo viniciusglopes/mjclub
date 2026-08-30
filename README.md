@@ -147,6 +147,13 @@ teste:
 psql "$DATABASE_URL" -f supabase/seeds/demo_users.sql
 ```
 
+## Deploy
+
+O app roda como imagem Docker (`Dockerfile`, Next.js em modo standalone) e o
+banco fica no Supabase. O passo a passo para o Coolify — variáveis, health
+check, domínio e o que ainda falta antes de divulgar o endereço — está em
+[`docs/DEPLOY.md`](docs/DEPLOY.md).
+
 ## Arquitetura
 
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) cobre o modelo de domínio, o
