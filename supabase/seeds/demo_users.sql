@@ -2,6 +2,10 @@
 -- Cria contas em auth.users para dar vida às áreas logadas (membro, equipe,
 -- parceiro). NÃO aplique em produção: as senhas são públicas.
 -- Senha de todos: mjclub123
+--
+-- Fica fora de supabase/migrations/ de propósito: assim o `supabase db push`
+-- não o aplica junto com o schema. Para usar, rode à mão:
+--   psql "$DATABASE_URL" -f supabase/seeds/demo_users.sql
 
 do $$
 declare

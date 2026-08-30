@@ -47,6 +47,11 @@ for f in "$ROOT"/supabase/migrations/*.sql; do
   run "$f"
 done
 
+# Fica fora de migrations/ para o `supabase db push` nunca levá-lo ao projeto
+# real, mas os testes de RLS precisam dos perfis que ele cria.
+echo "   seeds/demo_users.sql"
+run "$ROOT/supabase/seeds/demo_users.sql"
+
 echo "→ verificações"
 run "$ROOT/supabase/tests/01_helpers.sql"
 run "$ROOT/supabase/tests/02_constraints.sql"

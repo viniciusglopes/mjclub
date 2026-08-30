@@ -59,17 +59,62 @@ se estiver em outro caminho. Não toca em nenhum projeto Supabase.
 
 ## Apontando para o Supabase
 
-1. Crie um projeto no Supabase (região `sa-east-1`).
-2. Rode as migrations de `supabase/migrations/` na ordem:
-   - `0001_schema.sql` — tabelas, constraints e RLS
-   - `0002_seed.sql` — catálogo da MJ Barbearia
-   - `0003_seed_demo_users.sql` — **opcional**, usuários de demonstração
-     (não use em produção: as senhas são públicas)
-3. Copie `.env.example` para `.env.local` e preencha
-   `NEXT_PUBLIC_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`.
+O app troca de driver sozinho quando `NEXT_PUBLIC_SUPABASE_URL` e
+`SUPABASE_SERVICE_ROLE_KEY` existem — nenhuma tela muda.
 
-O app troca de driver sozinho quando essas duas variáveis existem — nenhuma
-tela muda.
+### 1. Ligar o repositório ao projeto
+
+```bash
+npm i -g supabase          # ou: brew install supabase/tap/supabase
+supabase login
+supabase link --project-ref <ref-do-projeto>
+```
+
+`supabase init` **não** é necessário: `supabase/migrations/` já existe aqui. Se
+você rodar mesmo assim, ele só cria o `supabase/config.toml` — deixe os
+arquivos de migration como estão.
+
+### 2. Aplicar o schema
+
+```bash
+supabase db push
+```
+
+Isso aplica, em ordem, o que está em `supabase/migrations/`:
+
+| Arquivo | O que faz |
+| --- | --- |
+| `..._schema.sql` | tabelas, enums, constraints e todas as policies de RLS |
+| `..._seed_catalog.sql` | catálogo da MJ Barbearia: equipe, serviços, grade, planos, parceiros e ofertas |
+
+### 3. Configurar o ambiente
+
+```bash
+cp .env.example .env.local
+```
+
+Preencha com o que está em **Settings › API Keys** do projeto:
+
+- `NEXT_PUBLIC_SUPABASE_URL` — a URL do projeto
+- `SUPABASE_SERVICE_ROLE_KEY` — a chave **secret / service_role**
+
+> A *publishable key* (`sb_publishable_...`) não serve aqui. Ela é a chave
+> pública do browser, e a POC renderiza tudo no servidor. O que o driver
+> precisa é da service role, porque o servidor grava em nome da barbearia:
+> agendamento de convidado (sem `auth.uid()`) e validação de resgate no balcão.
+> Ela ignora RLS — nunca prefixe com `NEXT_PUBLIC_`, não comite e não cole em
+> chat.
+
+### 4. Opcional: dados de demonstração
+
+`supabase/seeds/demo_users.sql` cria as contas que dão vida às áreas logadas
+(membro, equipe e parceiro). Fica **fora** de `migrations/` de propósito, para o
+`db push` nunca levá-lo junto — as senhas são públicas. Só rode em ambiente de
+teste:
+
+```bash
+psql "$DATABASE_URL" -f supabase/seeds/demo_users.sql
+```
 
 ## Arquitetura
 

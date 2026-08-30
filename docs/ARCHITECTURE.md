@@ -89,7 +89,7 @@ Roadmap: subdomínio (`mjbarbearia.mjclub.com.br`) ou path `/b/[slug]`.
 - **`supabase`** — ativado automaticamente quando `NEXT_PUBLIC_SUPABASE_URL` e
   `SUPABASE_SERVICE_ROLE_KEY` existem. Mesma interface, queries reais.
 
-O seed TypeScript e o seed SQL (`supabase/migrations/0002_seed.sql`) descrevem
+O seed TypeScript e o seed SQL (`..._seed_catalog.sql`) descrevem
 os **mesmos dados**, então a tela não muda ao trocar de driver.
 
 Estado de verificação:

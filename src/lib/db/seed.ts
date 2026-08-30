@@ -1,7 +1,8 @@
 /**
- * Seed do driver `demo`. Espelha supabase/migrations/0002_seed.sql e
- * 0003_seed_demo_users.sql — os mesmos ids, para que a tela não mude ao
- * trocar de driver. Dados fictícios, revisar antes de produção.
+ * Seed do driver `demo`. Espelha o seed do catálogo em
+ * supabase/migrations/ e supabase/seeds/demo_users.sql — os mesmos ids, para
+ * que a tela não mude ao trocar de driver. Dados fictícios, revisar antes de
+ * produção.
  */
 import type {
   Appointment,
