@@ -72,6 +72,11 @@ Nenhum dos dois toca em projeto Supabase algum.
 O app troca de driver sozinho quando `NEXT_PUBLIC_SUPABASE_URL` e
 `SUPABASE_SERVICE_ROLE_KEY` existem — nenhuma tela muda.
 
+> **O banco já está no ar.** O projeto `mdbtghfmaioqdrkhrick` (região
+> `us-west-2`) está com as quatro migrations aplicadas, o catálogo da MJ
+> Barbearia semeado e a RLS conferida de fora. Os passos abaixo servem para
+> ligar um ambiente novo — ou para conferir o que já existe (passo 4).
+
 ### 1. Ligar o repositório ao projeto
 
 ```bash
@@ -96,6 +101,11 @@ Isso aplica, em ordem, o que está em `supabase/migrations/`:
 | --- | --- |
 | `..._schema.sql` | tabelas, enums, constraints e todas as policies de RLS |
 | `..._seed_catalog.sql` | catálogo da MJ Barbearia: equipe, serviços, grade, planos, parceiros e ofertas |
+| `..._harden_security.sql` | tira a extensão e as funções de RLS do schema exposto pela API |
+| `..._perf_rls_and_indexes.sql` | `auth.uid()` avaliado uma vez por consulta e índices nas chaves estrangeiras |
+
+Os nomes dos arquivos usam as mesmas versões já gravadas no projeto, então um
+`db push` contra ele não tenta reaplicar nada.
 
 ### 3. Configurar o ambiente
 

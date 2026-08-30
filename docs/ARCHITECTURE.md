@@ -99,6 +99,7 @@ Estado de verificação:
 | Schema, constraints e RLS | `npm run test:db` — 40 asserções num Postgres descartável |
 | Driver `demo` | `npm run smoke` + os fluxos HTTP da POC |
 | Driver `supabase` | `npm run test:driver` — 26 asserções contra um PostgREST real |
+| Projeto Supabase | migrations aplicadas e conferidas no banco real (ver §10) |
 
 O `test:driver` resolve o que antes dependia de um projeto Supabase existir: o
 PostgREST é a mesma peça que atende `/rest/v1` lá dentro, então rodá-lo sobre o
@@ -174,7 +175,30 @@ Para um projeto de verdade existe `npm run check:remote`, que é só de leitura:
 confere se o schema foi aplicado, se o catálogo está semeado e — com a
 publishable key — se a RLS barra o visitante de fora.
 
-## 9. Roadmap
+## 9. Estado do projeto Supabase
+
+O projeto `mdbtghfmaioqdrkhrick` está com as quatro migrations aplicadas.
+Conferido direto no banco:
+
+- catálogo semeado (1 barbearia, 3 profissionais, 7 serviços, 19 vínculos,
+  14 faixas de horário, 3 planos, 6 parceiros, 6 ofertas);
+- RLS ligada em todas as tabelas de `public`, e vista de fora: o visitante lê a
+  vitrine (7 serviços, 3 planos, 6 parceiros, 6 ofertas) e **nada** de
+  assinaturas, perfis, agendamentos ou resgates;
+- a constraint de sobreposição barra dois atendimentos no mesmo profissional e
+  libera o mesmo horário em outro (linhas de teste removidas depois);
+- linter de segurança do Supabase sem nenhum aviso.
+
+O linter de performance ainda aponta `multiple_permissive_policies`. Não é
+defeito: várias policies permissivas na mesma tabela e ação é consequência de
+separar "o cliente vê o dele" de "a equipe vê tudo". Consolidar tornaria as
+regras mais rápidas e menos legíveis — vale quando houver volume que justifique.
+
+O projeto está em `us-west-2`. Para um público de São Paulo, `sa-east-1`
+tiraria uns 150 ms de cada consulta; a hora barata de mudar é agora, com o
+banco ainda sem clientes.
+
+## 10. Roadmap
 
 **Fase 1 — POC (esta entrega)**
 Landing, agendamento, clube, carteirinha, painel da barbearia, painel do parceiro.
