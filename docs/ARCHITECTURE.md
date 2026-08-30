@@ -177,8 +177,13 @@ publishable key — se a RLS barra o visitante de fora.
 
 ## 9. Estado do projeto Supabase
 
-O projeto `mdbtghfmaioqdrkhrick` está com as quatro migrations aplicadas.
-Conferido direto no banco:
+O projeto `mjclub` (`eoxribqsfhcghgvzndoh`) está em **`sa-east-1`**, que é a
+região certa para um público de São Paulo. Um projeto anterior nasceu em
+`us-west-2`; como a região não é editável no Supabase, o caminho foi recriar em
+São Paulo e reaplicar as migrations — barato porque não havia dado real, e o
+motivo de valer a pena decidir isso cedo.
+
+As quatro migrations estão aplicadas. Conferido direto no banco:
 
 - catálogo semeado (1 barbearia, 3 profissionais, 7 serviços, 19 vínculos,
   14 faixas de horário, 3 planos, 6 parceiros, 6 ofertas);
@@ -194,9 +199,8 @@ defeito: várias policies permissivas na mesma tabela e ação é consequência 
 separar "o cliente vê o dele" de "a equipe vê tudo". Consolidar tornaria as
 regras mais rápidas e menos legíveis — vale quando houver volume que justifique.
 
-O projeto está em `us-west-2`. Para um público de São Paulo, `sa-east-1`
-tiraria uns 150 ms de cada consulta; a hora barata de mudar é agora, com o
-banco ainda sem clientes.
+Os nomes dos arquivos de migration seguem as versões gravadas neste projeto,
+então um `supabase db push` contra ele não tenta reaplicar nada.
 
 ## 10. Roadmap
 

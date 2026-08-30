@@ -72,10 +72,11 @@ Nenhum dos dois toca em projeto Supabase algum.
 O app troca de driver sozinho quando `NEXT_PUBLIC_SUPABASE_URL` e
 `SUPABASE_SERVICE_ROLE_KEY` existem — nenhuma tela muda.
 
-> **O banco já está no ar.** O projeto `mdbtghfmaioqdrkhrick` (região
-> `us-west-2`) está com as quatro migrations aplicadas, o catálogo da MJ
-> Barbearia semeado e a RLS conferida de fora. Os passos abaixo servem para
-> ligar um ambiente novo — ou para conferir o que já existe (passo 4).
+> **O banco já está no ar.** O projeto `mjclub`
+> (`eoxribqsfhcghgvzndoh`, região `sa-east-1` — São Paulo) está com as quatro
+> migrations aplicadas, o catálogo da MJ Barbearia semeado e a RLS conferida de
+> fora. Os passos abaixo servem para ligar um ambiente novo — ou para conferir
+> o que já existe (passo 4).
 
 ### 1. Ligar o repositório ao projeto
 
