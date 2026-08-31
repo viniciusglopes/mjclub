@@ -9,7 +9,7 @@ export type PriceBreakdown = {
 };
 
 /**
- * Regra única de preço do MJCLUB.
+ * Regra única de preço do MJ CLUB.
  *
  * Sem plano, paga a tabela. Com plano, vale o `memberPriceCents` do serviço
  * quando ele existe (preço promocional fechado, como o combo do MJ Prime);

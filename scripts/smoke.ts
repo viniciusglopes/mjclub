@@ -38,7 +38,7 @@ async function main() {
   assert.equal(tenant.slug, "mj-barbearia");
   assert.equal(services.length, 7);
   assert.equal(staff.length, 3);
-  assert.equal(plans.length, 3);
+  assert.equal(plans.length, 6);
   assert.equal(partners.length, 6);
   assert.equal(offers.length, 6);
   ok("catálogo semeado");
@@ -53,20 +53,40 @@ async function main() {
 
   // ------------------------------------------------------------ preço
   const combo = services.find((s) => s.name === "Corte + Barba")!;
-  const prime = plans.find((p) => p.name === "MJ Prime")!;
-  const start = plans.find((p) => p.name === "MJ Start")!;
+  const corte = services.find((s) => s.name === "Corte masculino")!;
+  const destaque = plans.find((p) => p.highlight)!;
+  assert.equal(destaque.name, "Plano Completo");
+
+  // A regra de preço é exercitada com dados construídos, não com o seed: os
+  // planos reais do MJ CLUB são cota ("1 corte por semana") e não desconto, mas
+  // a regra continua no código e precisa continuar correta.
+  const comPercentual = { ...destaque, discountPercent: 10 };
+  const comPrecoFixo = { ...combo, memberPriceCents: 5900 };
 
   assert.deepEqual(priceFor(combo, null), {
     fullCents: 7500,
     finalCents: 7500,
     discountCents: 0,
   });
-  // memberPriceCents ganha do percentual do plano.
-  assert.equal(priceFor(combo, prime).finalCents, 5900);
   // Sem preço fixo, aplica o percentual: 45,00 − 10% = 40,50.
-  const corte = services.find((s) => s.name === "Corte masculino")!;
-  assert.equal(priceFor(corte, start).finalCents, 4050);
+  assert.equal(priceFor(corte, comPercentual).finalCents, 4050);
+  // Com preço fixo, ele ganha do percentual do plano.
+  assert.equal(priceFor(comPrecoFixo, comPercentual).finalCents, 5900);
+  // Um "preço de membro" acima da tabela nunca pode encarecer o serviço.
+  assert.equal(
+    priceFor({ ...combo, memberPriceCents: 9900 }, comPercentual).finalCents,
+    7500,
+  );
   ok("regra de preço de membro");
+
+  // E o estado atual do catálogo: nenhum plano real desconta automaticamente,
+  // porque a cota ainda é controlada manualmente na barbearia.
+  assert.ok(plans.every((p) => p.discountPercent === 0));
+  assert.ok(services.every((s) => s.memberPriceCents === null));
+  for (const plan of plans) {
+    assert.equal(priceFor(combo, plan).finalCents, combo.priceCents);
+  }
+  ok("nenhum plano aplica desconto automático (cota é manual)");
 
   // ------------------------------------------------------------ agenda
   const dateISO = nextOpenDate();
@@ -88,7 +108,7 @@ async function main() {
   );
 
   const membership = (await repo.listMemberships())[0];
-  const priced = priceFor(combo, prime);
+  const priced = priceFor(combo, destaque);
 
   const appointment = await repo.createAppointment({
     staffId: mikael.id,
@@ -104,8 +124,8 @@ async function main() {
     notes: null,
   });
   assert.equal(appointment.status, "confirmed");
-  assert.equal(appointment.discountCents, 1600);
-  ok("agendamento criado com desconto do clube");
+  assert.equal(appointment.discountCents, 0);
+  ok("agendamento criado com o preço de tabela");
 
   // O mesmo horário não pode ser vendido duas vezes.
   await assert.rejects(
@@ -174,7 +194,7 @@ async function main() {
   const novo = await repo.subscribe({
     fullName: "Carlos Lima",
     phone: "(11) 97777-1234",
-    planId: start.id,
+    planId: plans[0].id,
   });
   assert.equal(novo.membership.status, "active");
   assert.match(novo.membership.memberCode, /^MJ-[A-Z0-9]{4}-[A-Z0-9]{3}$/);

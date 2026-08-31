@@ -20,7 +20,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-20">
       <section className="pt-4">
-        <Badge>Clube de benefícios · {partners.length} parceiros</Badge>
+        <Badge>MJ Barbearia · desde 2018</Badge>
         <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
           Seu corte em dia.
           <br />
@@ -35,7 +35,9 @@ export default async function HomePage() {
           </ButtonLink>
         </div>
 
-        <p className="mt-6 text-sm text-muted">{tenant.address}</p>
+        {tenant.address ? (
+          <p className="mt-6 text-sm text-muted">{tenant.address}</p>
+        ) : null}
       </section>
 
       <section>
@@ -108,7 +110,7 @@ export default async function HomePage() {
       </section>
 
       <section>
-        <h2 className="text-2xl font-bold tracking-tight">A rede MJCLUB</h2>
+        <h2 className="text-2xl font-bold tracking-tight">A rede MJ CLUB</h2>
         <p className="mt-2 text-muted">
           Sua carteirinha vale aqui fora também. Mostrou o código, ganhou desconto.
         </p>
@@ -138,7 +140,7 @@ export default async function HomePage() {
         </h2>
         <p className="mt-3 max-w-xl text-muted">
           A partir de {formatBRL(Math.min(...plans.map((p) => p.priceCents)))} por mês, com
-          desconto em todos os serviços e acesso à rede de parceiros.
+          cortes e barbas inclusos, prioridade na agenda e acesso à rede de parceiros.
         </p>
         <div className="mt-6">
           <ButtonLink href="/clube">Ver planos</ButtonLink>

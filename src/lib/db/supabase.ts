@@ -562,7 +562,7 @@ export class SupabaseRepository implements Repository {
       ok: true,
       redemption: toRedemption(updated.data),
       offer,
-      memberName: profile?.fullName ?? "Membro MJCLUB",
+      memberName: profile?.fullName ?? "Membro MJ CLUB",
     };
   }
 }

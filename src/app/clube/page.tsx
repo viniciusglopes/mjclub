@@ -10,7 +10,7 @@ import { subscribeToPlan } from "./actions";
 export const metadata: Metadata = {
   title: "Clube de benefícios",
   description:
-    "Planos do MJCLUB: desconto em todos os serviços da MJ Barbearia e em toda a rede de parceiros.",
+    "Planos do MJ CLUB: cortes e barbas inclusos, prioridade no agendamento e vantagens em toda a rede de parceiros.",
 };
 
 export default async function ClubePage({
@@ -32,9 +32,9 @@ export default async function ClubePage({
     <div className="space-y-14">
       <div>
         <PageTitle
-          eyebrow="MJCLUB"
-          title="O clube de benefícios"
-          subtitle={`Um plano mensal que rende dentro e fora da barbearia: desconto em todos os serviços e ${offers.length} benefícios em ${partners.length} parceiros da região.`}
+          eyebrow="MJ CLUB"
+          title="Faça parte do MJ CLUB"
+          subtitle={`Seu cuidado, sua rotina, seu clube. Cortes e barbas inclusos no plano, prioridade no agendamento e mais ${offers.length} benefícios em ${partners.length} parceiros da região.`}
         />
 
         {sp.erro ? (
@@ -51,10 +51,14 @@ export default async function ClubePage({
                   plan.highlight ? "border-gold/50 bg-gold/[0.06]" : ""
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="text-lg font-bold">{plan.name}</h2>
-                  {plan.highlight ? <Badge>Mais escolhido</Badge> : null}
-                </div>
+                {/* O selo fica acima do nome: ao lado, ele espremia o título
+                    e quebrava "Plano Completo" em duas linhas. */}
+                {plan.highlight ? (
+                  <div className="mb-2">
+                    <Badge>Mais escolhido</Badge>
+                  </div>
+                ) : null}
+                <h2 className="text-lg font-bold">{plan.name}</h2>
 
                 <p className="mt-2 text-sm text-muted">{plan.description}</p>
 

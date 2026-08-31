@@ -7,15 +7,15 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.mjclub.com.br"),
   title: {
-    default: "MJCLUB — Barbearia e clube de benefícios",
-    template: "%s · MJCLUB",
+    default: "MJ CLUB — MJ Barbearia",
+    template: "%s · MJ CLUB",
   },
   description:
-    "Agende seu corte na MJ Barbearia e entre no clube de benefícios com descontos na barbearia e em toda a rede de parceiros.",
+    "Agende seu corte na MJ Barbearia e faça parte do MJ CLUB: cortes e barbas inclusos, prioridade na agenda e vantagens em toda a rede de parceiros.",
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    siteName: "MJCLUB",
+    siteName: "MJ CLUB",
   },
 };
 
@@ -27,7 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">{children}</main>
         <footer className="border-t border-line">
           <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <p>© {new Date().getFullYear()} MJCLUB · mjclub.com.br</p>
+            <p>
+              © {new Date().getFullYear()} MJ CLUB · MJ Barbearia, desde 2018
+            </p>
             <nav className="flex gap-4">
               <Link href="/agendar" className="hover:text-gold">
                 Agendar

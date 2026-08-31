@@ -7,7 +7,7 @@ import { formatPhone } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Rede de parceiros",
   description:
-    "Todos os benefícios do MJCLUB: descontos em restaurantes, academia, ótica e mais.",
+    "Todos os benefícios do MJ CLUB: descontos em restaurantes, academia, ótica e mais.",
 };
 
 export default async function ParceirosPage() {
@@ -19,7 +19,7 @@ export default async function ParceirosPage() {
   return (
     <div>
       <PageTitle
-        eyebrow="Rede MJCLUB"
+        eyebrow="Rede MJ CLUB"
         title="Benefícios dos parceiros"
         subtitle="Mostre o código da sua carteirinha no balcão e o desconto sai na hora."
       />
@@ -76,7 +76,7 @@ export default async function ParceirosPage() {
       )}
 
       <div className="mt-10 rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/10 to-transparent p-8">
-        <h2 className="text-xl font-bold">Quer virar parceiro do MJCLUB?</h2>
+        <h2 className="text-xl font-bold">Quer virar parceiro do MJ CLUB?</h2>
         <p className="mt-2 max-w-xl text-muted">
           Você entra na vitrine, recebe clientes que já compram na região e valida os
           resgates direto no painel — sem cupom de papel.

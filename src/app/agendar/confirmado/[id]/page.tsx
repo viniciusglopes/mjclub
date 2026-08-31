@@ -85,7 +85,9 @@ export default async function ConfirmadoPage({
       </div>
 
       <p className="mt-6 text-center text-sm text-muted">
-        Precisa remarcar? Fale com a barbearia pelo WhatsApp {formatPhone(tenant.whatsapp ?? "")}.
+        {tenant.whatsapp
+          ? `Precisa remarcar? Fale com a barbearia pelo WhatsApp ${formatPhone(tenant.whatsapp)}.`
+          : "Precisa remarcar? Fale com a barbearia."}
       </p>
     </div>
   );

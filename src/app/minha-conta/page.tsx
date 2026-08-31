@@ -88,7 +88,10 @@ export default async function MinhaContaPage({
           <div className="max-w-md rounded-2xl border border-gold/40 bg-gradient-to-br from-gold/15 via-surface to-surface p-6">
             <div className="flex items-start justify-between">
               <span className="text-xs font-bold uppercase tracking-[0.25em] text-gold">
-                MJCLUB
+                MJ CLUB
+                <span className="ml-2 font-medium tracking-normal text-muted">
+                  membro oficial
+                </span>
               </span>
               <Badge>{plan.name}</Badge>
             </div>

@@ -36,9 +36,10 @@ async function main() {
   assert.equal(services.length, 7);
   assert.equal(services[0].name, "Corte masculino", "deve vir ordenado por sort_order");
   const combo = services.find((s) => s.name === "Corte + Barba")!;
-  assert.equal(combo.memberPriceCents, 5900);
-  assert.equal(services.find((s) => s.name === "Corte masculino")!.memberPriceCents, null);
-  ok("listServices traz preço de membro, inclusive quando é nulo");
+  // Nenhum serviço tem preço fixo de membro hoje: os planos reais entregam
+  // cota, não desconto. O mapeamento do nulo é o que importa aqui.
+  assert.ok(services.every((s) => s.memberPriceCents === null));
+  ok("listServices mapeia preço de membro nulo sem virar zero");
 
   const staff = await repo.listStaff();
   assert.equal(staff.length, 3);
@@ -57,11 +58,14 @@ async function main() {
   ok("listSchedules normaliza o formato de hora do Postgres");
 
   const plans = await repo.listPlans();
-  assert.equal(plans.length, 3);
-  const prime = plans.find((p) => p.name === "MJ Prime")!;
-  assert.equal(prime.highlight, true);
-  // benefits é jsonb: precisa chegar como array, não string.
-  assert.ok(Array.isArray(prime.benefits) && prime.benefits.length === 4);
+  assert.equal(plans.length, 6);
+  const destaque = plans.find((p) => p.highlight)!;
+  assert.equal(destaque.name, "Plano Completo");
+  // benefits é jsonb: precisa chegar como array de strings, não string única.
+  assert.ok(Array.isArray(destaque.benefits) && destaque.benefits.length >= 3);
+  assert.ok(destaque.benefits.every((b) => typeof b === "string"));
+  // Os planos reais são cota, não desconto: nenhum desconta sozinho.
+  assert.ok(plans.every((p) => p.discountPercent === 0));
   ok("listPlans desserializa o jsonb de benefícios");
 
   // ------------------------------------------------------------ agenda
@@ -70,7 +74,7 @@ async function main() {
 
   const startsAt = `${dia}T09:00:00-03:00`;
   const endsAt = toSpIso(new Date(new Date(startsAt).getTime() + combo.durationMin * 60_000));
-  const preco = priceFor(combo, prime);
+  const preco = priceFor(combo, destaque);
 
   const novo = {
     staffId: mikael.id,
@@ -88,8 +92,8 @@ async function main() {
 
   const agendado = await repo.createAppointment(novo);
   assert.equal(agendado.status, "confirmed");
-  assert.equal(agendado.priceCents, 5900);
-  assert.equal(agendado.discountCents, 1600);
+  assert.equal(agendado.priceCents, combo.priceCents);
+  assert.equal(agendado.discountCents, 0);
   assert.equal(agendado.notes, "reservado pelo teste");
   ok("createAppointment grava e devolve a linha criada");
 
@@ -147,14 +151,14 @@ async function main() {
   // subscribe com perfil que já existe: troca o plano e mantém a carteirinha.
   // O caminho de perfil novo passa por auth.admin.createUser (GoTrue), que o
   // PostgREST não serve — fica coberto só contra um Supabase real.
-  const start = plans.find((p) => p.name === "MJ Start")!;
+  const outroPlano = plans.find((p) => p.id !== membership.planId)!;
   const trocado = await repo.subscribe({
     fullName: "João Pereira",
     phone: "(11) 98888-0002",
-    planId: start.id,
+    planId: outroPlano.id,
   });
   assert.equal(trocado.membership.id, membership.id, "não deve criar outra assinatura");
-  assert.equal(trocado.membership.planId, start.id);
+  assert.equal(trocado.membership.planId, outroPlano.id);
   assert.equal(trocado.membership.memberCode, membership.memberCode);
   ok("subscribe troca o plano sem emitir nova carteirinha");
 

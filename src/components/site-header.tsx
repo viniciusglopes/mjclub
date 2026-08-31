@@ -18,7 +18,7 @@ export async function SiteHeader() {
           <span className="grid size-9 place-items-center rounded-lg bg-gold font-black text-ink">
             MJ
           </span>
-          <span className="text-lg font-bold tracking-tight">CLUB</span>
+          <span className="text-lg font-bold tracking-tight">MJ CLUB</span>
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm text-muted sm:flex">

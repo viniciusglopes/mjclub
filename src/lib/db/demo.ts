@@ -302,7 +302,7 @@ export class DemoRepository implements Repository {
       ok: true,
       redemption,
       offer,
-      memberName: profile?.fullName ?? "Membro MJCLUB",
+      memberName: profile?.fullName ?? "Membro MJ CLUB",
     };
   }
 }

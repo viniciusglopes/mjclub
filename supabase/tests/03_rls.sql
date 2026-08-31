@@ -6,8 +6,9 @@ insert into auth.users (id) values ('10000000-0000-4000-8000-000000000009');
 insert into profiles (id, full_name, phone)
 values ('10000000-0000-4000-8000-000000000009', 'Outro Membro', '11900000009');
 insert into memberships (tenant_id, plan_id, profile_id, member_code, status)
-values ('a0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001',
-        '10000000-0000-4000-8000-000000000009', 'MJ-OTHR-999', 'active');
+select 'a0000000-0000-4000-8000-000000000001', p.id,
+       '10000000-0000-4000-8000-000000000009', 'MJ-OTHR-999', 'active'
+from plans p order by p.sort_order limit 1;
 
 -- Um resgate do João numa oferta do Sabor & Brasa.
 insert into redemptions (tenant_id, offer_id, membership_id, code, expires_at)
@@ -25,7 +26,7 @@ declare
 begin
   raise notice '— visitante (anon): vitrine aberta, dado privado fechado —';
   perform assert_eq(visible_rows('anon', '', 'services')::text,     '7', 'anon lê o catálogo de serviços');
-  perform assert_eq(visible_rows('anon', '', 'plans')::text,        '3', 'anon lê os planos');
+  perform assert_eq(visible_rows('anon', '', 'plans')::text,        '6', 'anon lê os planos');
   perform assert_eq(visible_rows('anon', '', 'partners')::text,     '6', 'anon lê os parceiros');
   perform assert_eq(visible_rows('anon', '', 'offers')::text,       '6', 'anon lê as ofertas');
   perform assert_eq(visible_rows('anon', '', 'staff')::text,        '3', 'anon lê a equipe');

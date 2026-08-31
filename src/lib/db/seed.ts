@@ -31,10 +31,11 @@ export const tenant: Tenant = {
   id: TENANT_ID,
   slug: "mj-barbearia",
   name: "MJ Barbearia",
-  tagline:
-    "Corte, barba e um clube de vantagens que acompanha você fora da cadeira.",
-  whatsapp: "5511999999999",
-  address: "Rua das Palmeiras, 120 — São Paulo/SP",
+  tagline: "Seu cuidado. Sua rotina. Seu clube.",
+  // Nulos até virem os reais: endereço e telefone inventados apareciam na
+  // landing pública, e informação errada é pior que informação ausente.
+  whatsapp: null,
+  address: null,
   timezone: "America/Sao_Paulo",
   brandPrimary: "#c8a24a",
 };
@@ -58,7 +59,7 @@ export const services: Service[] = [
     description: "O combo da casa, com toalha quente.",
     durationMin: 70,
     priceCents: 7500,
-    memberPriceCents: 5900,
+    memberPriceCents: null,
     active: true,
     sortOrder: 2,
   },
@@ -80,7 +81,7 @@ export const services: Service[] = [
     description: "Acabamento entre os cortes.",
     durationMin: 15,
     priceCents: 2000,
-    memberPriceCents: 0,
+    memberPriceCents: null,
     active: true,
     sortOrder: 4,
   },
@@ -172,15 +173,20 @@ export const plans: Plan[] = [
   {
     id: pln(1),
     tenantId: TENANT_ID,
-    name: "MJ Start",
-    description: "Para quem corta uma vez por mês e quer as vantagens do clube.",
-    priceCents: 4990,
+    name: "Plano Manutenção",
+    description: "Para manter o corte em dia sem pensar nisso.",
+    priceCents: 10990,
     billingInterval: "monthly",
-    discountPercent: 10,
+    // Os planos reais são cota ("1 corte por semana"), não desconto
+    // percentual. Enquanto o motor de cotas não existe, nada é descontado
+    // automaticamente — ver supabase/migrations/..._planos_reais.sql.
+    discountPercent: 0,
     benefits: [
-      "10% de desconto em todos os serviços",
-      "Pezinho grátis entre os cortes",
-      "Acesso a toda a rede de parceiros",
+      "2 cortes por mês",
+      "2 acabamentos (pezinho) por mês",
+      "Prioridade no agendamento",
+      "Atendimento VIP",
+      "Descontos em produtos",
     ],
     highlight: false,
     active: true,
@@ -189,38 +195,113 @@ export const plans: Plan[] = [
   {
     id: pln(2),
     tenantId: TENANT_ID,
-    name: "MJ Prime",
-    description: "O plano da casa. Desconto forte e prioridade na agenda.",
-    priceCents: 8990,
+    name: "Plano Barba",
+    description: "Para quem cuida da barba toda semana.",
+    priceCents: 12990,
     billingInterval: "monthly",
-    discountPercent: 20,
+    // Os planos reais são cota ("1 corte por semana"), não desconto
+    // percentual. Enquanto o motor de cotas não existe, nada é descontado
+    // automaticamente — ver supabase/migrations/..._planos_reais.sql.
+    discountPercent: 0,
     benefits: [
-      "20% de desconto em todos os serviços",
-      "Combo Corte + Barba por R$ 59",
-      "Prioridade na fila de espera",
-      "Acesso a toda a rede de parceiros",
+      "1 barba por semana",
+      "1 skincare por mês",
+      "Prioridade no agendamento",
+      "Atendimento VIP",
+      "Descontos em produtos",
     ],
-    highlight: true,
+    highlight: false,
     active: true,
     sortOrder: 2,
   },
   {
     id: pln(3),
     tenantId: TENANT_ID,
-    name: "MJ Black",
-    description: "Corte quando quiser, sem contar quantas vezes.",
-    priceCents: 14990,
+    name: "Plano Corte",
+    description: "Um corte por semana, sempre no ponto.",
+    priceCents: 15990,
     billingInterval: "monthly",
-    discountPercent: 30,
+    // Os planos reais são cota ("1 corte por semana"), não desconto
+    // percentual. Enquanto o motor de cotas não existe, nada é descontado
+    // automaticamente — ver supabase/migrations/..._planos_reais.sql.
+    discountPercent: 0,
     benefits: [
-      "Cortes ilimitados",
-      "30% de desconto nos demais serviços",
-      "Barba com 50% de desconto",
-      "Benefícios exclusivos na rede de parceiros",
+      "1 corte por semana",
+      "Prioridade no agendamento",
+      "Atendimento VIP",
+      "Descontos em produtos",
     ],
     highlight: false,
     active: true,
     sortOrder: 3,
+  },
+  {
+    id: pln(4),
+    tenantId: TENANT_ID,
+    name: "Plano Executivo",
+    description: "Corte, barba e acabamento no mesmo plano.",
+    priceCents: 16990,
+    billingInterval: "monthly",
+    // Os planos reais são cota ("1 corte por semana"), não desconto
+    // percentual. Enquanto o motor de cotas não existe, nada é descontado
+    // automaticamente — ver supabase/migrations/..._planos_reais.sql.
+    discountPercent: 0,
+    benefits: [
+      "2 cortes por mês",
+      "1 barba por mês",
+      "2 acabamentos (pezinho) por mês",
+      "Prioridade no agendamento",
+      "Atendimento VIP",
+      "Descontos em produtos",
+    ],
+    highlight: false,
+    active: true,
+    sortOrder: 4,
+  },
+  {
+    id: pln(5),
+    tenantId: TENANT_ID,
+    name: "Plano Completo",
+    description: "O mais escolhido: corte e barba toda semana.",
+    priceCents: 25990,
+    billingInterval: "monthly",
+    // Os planos reais são cota ("1 corte por semana"), não desconto
+    // percentual. Enquanto o motor de cotas não existe, nada é descontado
+    // automaticamente — ver supabase/migrations/..._planos_reais.sql.
+    discountPercent: 0,
+    benefits: [
+      "1 corte + barba por semana",
+      "Prioridade no agendamento",
+      "Atendimento VIP",
+      "Descontos em produtos",
+    ],
+    highlight: true,
+    active: true,
+    sortOrder: 5,
+  },
+  {
+    id: pln(6),
+    tenantId: TENANT_ID,
+    name: "Plano VIP",
+    description: "Exclusivo. Tudo do Completo, e mais.",
+    priceCents: 28990,
+    billingInterval: "monthly",
+    // Os planos reais são cota ("1 corte por semana"), não desconto
+    // percentual. Enquanto o motor de cotas não existe, nada é descontado
+    // automaticamente — ver supabase/migrations/..._planos_reais.sql.
+    discountPercent: 0,
+    benefits: [
+      "1 corte + barba por semana",
+      "1 hidratação VIP por mês",
+      "Sobrancelha inclusa",
+      "Skincare com desconto",
+      "Direito de levar 1 amigo com desconto especial",
+      "Prioridade no agendamento",
+      "Atendimento VIP",
+    ],
+    highlight: false,
+    active: true,
+    sortOrder: 6,
   },
 ];
 
@@ -399,7 +480,7 @@ export const memberships: Membership[] = [
   {
     id: "20000000-0000-4000-8000-000000000001",
     tenantId: TENANT_ID,
-    planId: pln(2),
+    planId: pln(5),
     profileId: usr(2),
     memberCode: "MJ-7K42-9QX",
     status: "active",

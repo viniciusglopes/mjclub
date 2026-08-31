@@ -54,6 +54,14 @@ tenants (barbearias)
   histórico não pode mudar junto.
 - **plan / membership** — plano e assinatura. A `membership` carrega o
   `member_code`, que é a carteirinha digital.
+
+  **Lacuna conhecida:** `plans` só sabe representar desconto percentual, e os
+  planos reais do MJ CLUB são **cota** — "1 corte por semana", "2 cortes por
+  mês". Não existe onde guardar quantas unidades de qual serviço, em qual
+  período. Por isso todos os planos estão hoje com `discount_percent = 0` e a
+  cota é controlada manualmente na barbearia. Fechar isso pede uma tabela de
+  direitos (plano × serviço × quantidade × período) e um saldo por ciclo — ver
+  §10.
 - **partner / offer / redemption** — parceiro, o benefício que ele oferece e o
   resgate. O resgate gera um código curto que o parceiro valida no balcão.
 
@@ -214,7 +222,8 @@ Falta ligar num projeto Supabase (e com isso exercitar o driver `supabase`) e
 trocar o código da carteirinha por um QR.
 
 **Fase 2 — produção MJ Barbearia**
-Supabase Auth com OTP/WhatsApp · cobrança recorrente · notificação de lembrete
+Motor de cotas do clube (o que cada plano inclui e quanto já foi usado no ciclo)
+· Supabase Auth com OTP/WhatsApp · cobrança recorrente · notificação de lembrete
 no WhatsApp · reagendamento e cancelamento pelo cliente · fila de espera.
 
 **Fase 3 — SaaS**

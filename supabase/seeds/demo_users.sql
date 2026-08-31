@@ -47,8 +47,13 @@ begin
   values ('e0000000-0000-4000-8000-000000000001', v_parceiro)
   on conflict do nothing;
 
+  -- Busca o plano em destaque em vez de fixar um id: assim o seed sobrevive a
+  -- mudanças na tabela de planos, que já aconteceram uma vez.
   insert into memberships (tenant_id, plan_id, profile_id, member_code, status, current_period_end)
-  values (v_tenant, 'd0000000-0000-4000-8000-000000000002', v_membro,
-          'MJ-7K42-9QX', 'active', now() + interval '30 days')
+  select v_tenant, p.id, v_membro, 'MJ-7K42-9QX', 'active', now() + interval '30 days'
+  from plans p
+  where p.tenant_id = v_tenant
+  order by p.highlight desc, p.sort_order
+  limit 1
   on conflict do nothing;
 end $$;

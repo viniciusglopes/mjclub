@@ -6,7 +6,7 @@ begin
   perform assert_eq((select count(*)::text from tenants), '1', 'uma barbearia');
   perform assert_eq((select count(*)::text from staff), '3', 'três profissionais');
   perform assert_eq((select count(*)::text from services), '7', 'sete serviços');
-  perform assert_eq((select count(*)::text from plans), '3', 'três planos');
+  perform assert_eq((select count(*)::text from plans), '6', 'seis planos');
   perform assert_eq((select count(*)::text from partners), '6', 'seis parceiros');
   perform assert_eq((select count(*)::text from offers), '6', 'seis ofertas');
   perform assert_eq((select count(*)::text from work_schedules), '14', 'grade semanal completa');
@@ -86,14 +86,16 @@ begin
 
   perform assert_eq(
     outcome($q$insert into memberships (tenant_id, plan_id, profile_id, member_code, status)
-      values ('a0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001',
-              '10000000-0000-4000-8000-000000000002', 'MJ-XXXX-YYY', 'active')$q$),
+      select 'a0000000-0000-4000-8000-000000000001', p.id,
+             '10000000-0000-4000-8000-000000000002', 'MJ-XXXX-YYY', 'active'
+      from plans p order by p.sort_order limit 1$q$),
     'recusou', 'um perfil não tem duas assinaturas ativas');
 
   perform assert_eq(
     outcome($q$insert into memberships (tenant_id, plan_id, profile_id, member_code, status)
-      values ('a0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001',
-              '10000000-0000-4000-8000-000000000001', 'MJ-7K42-9QX', 'active')$q$),
+      select 'a0000000-0000-4000-8000-000000000001', p.id,
+             '10000000-0000-4000-8000-000000000001', 'MJ-7K42-9QX', 'active'
+      from plans p order by p.sort_order limit 1$q$),
     'recusou', 'carteirinha duplicada é recusada');
 
   perform assert_eq(
