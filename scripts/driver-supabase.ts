@@ -28,7 +28,8 @@ const ok = (label: string) => checks.push(label);
 async function main() {
   // ------------------------------------------------------------ catálogo
   const tenant = await repo.getTenant();
-  assert.equal(tenant.slug, "mj-barbearia");
+  assert.equal(tenant.slug, "mjbarbearia");
+  assert.equal(tenant.active, true);
   assert.equal(tenant.brandPrimary, "#c8a24a");
   ok("getTenant mapeia snake_case para camelCase");
 

@@ -7,11 +7,12 @@ import type { Plan, Service, Slot } from "./types";
 
 /** Horários livres de um profissional para um serviço em uma data. */
 export async function getAvailability(params: {
+  tenantId: string;
   staffId: string;
   serviceId: string;
   dateISO: string;
 }): Promise<Slot[]> {
-  const repo = getRepository();
+  const repo = getRepository(params.tenantId);
   const services = await repo.listServices();
   const service = services.find((s) => s.id === params.serviceId);
   if (!service) return [];
@@ -31,10 +32,11 @@ export async function getAvailability(params: {
 
 /** Preço de um serviço para o telefone informado, já considerando o clube. */
 export async function priceForPhone(
+  tenantId: string,
   service: Service,
   phone: string | null,
 ): Promise<{ breakdown: PriceBreakdown; plan: Plan | null; membershipId: string | null }> {
-  const repo = getRepository();
+  const repo = getRepository(tenantId);
 
   if (!phone) {
     return { breakdown: priceFor(service, null), plan: null, membershipId: null };

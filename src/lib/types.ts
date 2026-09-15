@@ -20,6 +20,20 @@ export type Tenant = {
   address: string | null;
   timezone: string;
   brandPrimary: string;
+  /** Barbearia inativa não abre em `/[slug]`. */
+  active: boolean;
+};
+
+/** Interesse de uma barbearia deixado na página do produto. */
+export type NewLead = {
+  nomeBarbearia: string;
+  responsavel: string;
+  /** Só dígitos, com DDD. */
+  whatsapp: string;
+  cidade: string;
+  usuarios: number;
+  ipHash: string | null;
+  userAgent: string | null;
 };
 
 export type Staff = {

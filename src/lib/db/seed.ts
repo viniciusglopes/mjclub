@@ -29,7 +29,7 @@ const usr = (n: number) => `10000000-0000-4000-8000-00000000000${n}`;
 
 export const tenant: Tenant = {
   id: TENANT_ID,
-  slug: "mj-barbearia",
+  slug: "mjbarbearia",
   name: "MJ Barbearia",
   tagline: "Seu cuidado. Sua rotina. Seu clube.",
   // Nulos até virem os reais: endereço e telefone inventados apareciam na
@@ -38,7 +38,11 @@ export const tenant: Tenant = {
   address: null,
   timezone: "America/Sao_Paulo",
   brandPrimary: "#c8a24a",
+  active: true,
 };
+
+/** Todas as barbearias da demo. Hoje só a MJ. */
+export const tenants: Tenant[] = [tenant];
 
 export const services: Service[] = [
   {
@@ -305,7 +309,12 @@ export const plans: Plan[] = [
   },
 ];
 
-export const partners: Partner[] = [
+/**
+ * Parceiros e ofertas FICTÍCIOS da POC. Ficam no seed (os ids batem com o banco)
+ * mas DESATIVADOS, como em supabase/migrations/..._desativa_parceiros_ficticios.sql:
+ * não aparecem no site nem podem ser resgatados.
+ */
+const fictionalPartners: Partner[] = [
   {
     id: ptr(1),
     tenantId: TENANT_ID,
@@ -380,7 +389,9 @@ export const partners: Partner[] = [
   },
 ];
 
-export const offers: Offer[] = [
+export const partners: Partner[] = fictionalPartners.map((p) => ({ ...p, active: false }));
+
+const fictionalOffers: Offer[] = [
   {
     id: off(1),
     tenantId: TENANT_ID,
@@ -454,6 +465,8 @@ export const offers: Offer[] = [
     active: true,
   },
 ];
+
+export const offers: Offer[] = fictionalOffers.map((o) => ({ ...o, active: false }));
 
 export const profiles: Profile[] = [
   {

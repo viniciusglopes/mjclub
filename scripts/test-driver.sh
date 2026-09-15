@@ -61,6 +61,11 @@ apply "$ROOT/supabase/tests/00_supabase_stub.sql"
 for f in "$ROOT"/supabase/migrations/*.sql; do apply "$f"; done
 apply "$ROOT/supabase/seeds/demo_users.sql"
 
+# A migration de 15/09 desativa os parceiros fictícios. Este banco é descartável
+# e o teste do driver precisa de ofertas ativas para exercitar os resgates.
+psql -h /tmp -p "$PGPORT" -U postgres -d mjclub -v ON_ERROR_STOP=1 -q \
+  -c "update partners set active = true; update offers set active = true;"
+
 # Papéis como o Supabase monta: `authenticator` troca para o papel do JWT.
 psql -h /tmp -p "$PGPORT" -U postgres -d mjclub -v ON_ERROR_STOP=1 -q <<'SQL'
 create role authenticator login noinherit;

@@ -27,8 +27,10 @@ begin
   raise notice '— visitante (anon): vitrine aberta, dado privado fechado —';
   perform assert_eq(visible_rows('anon', '', 'services')::text,     '7', 'anon lê o catálogo de serviços');
   perform assert_eq(visible_rows('anon', '', 'plans')::text,        '6', 'anon lê os planos');
-  perform assert_eq(visible_rows('anon', '', 'partners')::text,     '6', 'anon lê os parceiros');
-  perform assert_eq(visible_rows('anon', '', 'offers')::text,       '6', 'anon lê as ofertas');
+  -- Os 6 parceiros e ofertas do seed são fictícios e foram desativados em 15/09.
+  perform assert_eq(visible_rows('anon', '', 'partners')::text,     '0', 'anon não lê parceiros desativados');
+  perform assert_eq(visible_rows('anon', '', 'offers')::text,       '0', 'anon não lê ofertas desativadas');
+  perform assert_eq(visible_rows('anon', '', 'leads_barbearias')::text, '0', 'anon não lê interessados');
   perform assert_eq(visible_rows('anon', '', 'staff')::text,        '3', 'anon lê a equipe');
   perform assert_eq(visible_rows('anon', '', 'appointments')::text, '0', 'anon NÃO lê agendamentos');
   perform assert_eq(visible_rows('anon', '', 'memberships')::text,  '0', 'anon NÃO lê assinaturas');

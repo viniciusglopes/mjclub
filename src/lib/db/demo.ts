@@ -1,9 +1,15 @@
-import { generateMemberCode, generateRedemptionCode, REDEMPTION_TTL_MS } from "../codes";
+import {
+  generateMemberCode,
+  generateRedemptionCode,
+  memberCodePrefix,
+  REDEMPTION_TTL_MS,
+} from "../codes";
 import { onlyDigits } from "../format";
 import type {
   Appointment,
   AppointmentStatus,
   Membership,
+  NewLead,
   Offer,
   Partner,
   Plan,
@@ -14,10 +20,14 @@ import type {
   Tenant,
   WorkSchedule,
 } from "../types";
+import type { PlatformRepository } from "./platform";
 import type { NewAppointment, Repository, ValidationResult } from "./repository";
 import * as seed from "./seed";
 
+type StoredLead = NewLead & { id: string; createdAt: string };
+
 type Store = {
+  leads: StoredLead[];
   appointments: Appointment[];
   memberships: Membership[];
   profiles: Profile[];
@@ -33,6 +43,7 @@ const globalStore = globalThis as unknown as { __mjclubStore?: Store };
 
 function store(): Store {
   globalStore.__mjclubStore ??= {
+    leads: [],
     appointments: [...seed.appointments],
     memberships: [...seed.memberships],
     profiles: [...seed.profiles],
@@ -54,28 +65,41 @@ const ACTIVE: AppointmentStatus[] = ["pending", "confirmed"];
  */
 const ms = (iso: string) => new Date(iso).getTime();
 
+/**
+ * Driver em memória de UMA barbearia. Todo dado é filtrado pelo tenantId
+ * recebido, como o driver Postgres faz com `.eq("tenant_id")`.
+ */
 export class DemoRepository implements Repository {
+  constructor(private tenantId: string) {}
+
+  private mine<T extends { tenantId: string }>(rows: T[]): T[] {
+    return rows.filter((r) => r.tenantId === this.tenantId);
+  }
+
   async getTenant(): Promise<Tenant> {
-    return seed.tenant;
+    const found = seed.tenants.find((t) => t.id === this.tenantId);
+    if (!found) throw new Error("Barbearia não encontrada.");
+    return found;
   }
 
   async listServices(): Promise<Service[]> {
-    return seed.services.filter((s) => s.active);
+    return this.mine(seed.services).filter((s) => s.active);
   }
 
   async listStaff(): Promise<Staff[]> {
-    return seed.staff.filter((s) => s.active);
+    return this.mine(seed.staff).filter((s) => s.active);
   }
 
   async listSchedules(staffId: string): Promise<WorkSchedule[]> {
-    return seed.workSchedules.filter((w) => w.staffId === staffId);
+    const staffIds = new Set(this.mine(seed.staff).map((s) => s.id));
+    return seed.workSchedules.filter((w) => w.staffId === staffId && staffIds.has(staffId));
   }
 
   async listBusy(staffId: string, dateISO: string): Promise<Appointment[]> {
     const dayStart = ms(`${dateISO}T00:00:00-03:00`);
     const dayEnd = dayStart + 86_400_000;
 
-    return store().appointments.filter(
+    return this.mine(store().appointments).filter(
       (a) =>
         a.staffId === staffId &&
         ACTIVE.includes(a.status) &&
@@ -85,7 +109,7 @@ export class DemoRepository implements Repository {
   }
 
   async getAppointment(id: string): Promise<Appointment | null> {
-    return store().appointments.find((a) => a.id === id) ?? null;
+    return this.mine(store().appointments).find((a) => a.id === id) ?? null;
   }
 
   async listAppointments(range: {
@@ -95,15 +119,15 @@ export class DemoRepository implements Repository {
     const from = ms(range.fromISO);
     const to = ms(range.toISO);
 
-    return store()
-      .appointments.filter((a) => ms(a.startsAt) >= from && ms(a.startsAt) < to)
+    return this.mine(store().appointments)
+      .filter((a) => ms(a.startsAt) >= from && ms(a.startsAt) < to)
       .sort((a, b) => ms(a.startsAt) - ms(b.startsAt));
   }
 
   async listAppointmentsByPhone(phone: string): Promise<Appointment[]> {
     const digits = onlyDigits(phone);
-    return store()
-      .appointments.filter((a) => onlyDigits(a.customerPhone) === digits)
+    return this.mine(store().appointments)
+      .filter((a) => onlyDigits(a.customerPhone) === digits)
       .sort((a, b) => ms(b.startsAt) - ms(a.startsAt));
   }
 
@@ -124,7 +148,7 @@ export class DemoRepository implements Repository {
     const appointment: Appointment = {
       ...input,
       id: uid(),
-      tenantId: seed.TENANT_ID,
+      tenantId: this.tenantId,
       status: "confirmed",
       createdAt: new Date().toISOString(),
     };
@@ -133,25 +157,25 @@ export class DemoRepository implements Repository {
   }
 
   async setAppointmentStatus(id: string, status: AppointmentStatus) {
-    const found = store().appointments.find((a) => a.id === id);
+    const found = this.mine(store().appointments).find((a) => a.id === id);
     if (found) found.status = status;
   }
 
   async listPlans(): Promise<Plan[]> {
-    return seed.plans.filter((p) => p.active);
+    return this.mine(seed.plans).filter((p) => p.active);
   }
 
   async getPlan(id: string): Promise<Plan | null> {
-    return seed.plans.find((p) => p.id === id) ?? null;
+    return this.mine(seed.plans).find((p) => p.id === id) ?? null;
   }
 
   async listMemberships(): Promise<Membership[]> {
-    return store().memberships;
+    return this.mine(store().memberships);
   }
 
   async getActiveMembership(profileId: string): Promise<Membership | null> {
     return (
-      store().memberships.find(
+      this.mine(store().memberships).find(
         (m) => m.profileId === profileId && m.status === "active",
       ) ?? null
     );
@@ -160,7 +184,7 @@ export class DemoRepository implements Repository {
   async getMembershipByCode(code: string): Promise<Membership | null> {
     const normalized = code.trim().toUpperCase();
     return (
-      store().memberships.find((m) => m.memberCode === normalized) ?? null
+      this.mine(store().memberships).find((m) => m.memberCode === normalized) ?? null
     );
   }
 
@@ -182,10 +206,10 @@ export class DemoRepository implements Repository {
 
     const membership: Membership = {
       id: uid(),
-      tenantId: seed.TENANT_ID,
+      tenantId: this.tenantId,
       planId: input.planId,
       profileId: profile.id,
-      memberCode: generateMemberCode(),
+      memberCode: generateMemberCode(memberCodePrefix((await this.getTenant()).name)),
       status: "active",
       startedAt: new Date().toISOString(),
       currentPeriodEnd: new Date(Date.now() + 30 * 86_400_000).toISOString(),
@@ -206,25 +230,25 @@ export class DemoRepository implements Repository {
   }
 
   async listPartners(): Promise<Partner[]> {
-    return seed.partners.filter((p) => p.active);
+    return this.mine(seed.partners).filter((p) => p.active);
   }
 
   async getPartner(id: string): Promise<Partner | null> {
-    return seed.partners.find((p) => p.id === id) ?? null;
+    return this.mine(seed.partners).find((p) => p.id === id) ?? null;
   }
 
   async getPartnerBySlug(slug: string): Promise<Partner | null> {
-    return seed.partners.find((p) => p.slug === slug) ?? null;
+    return this.mine(seed.partners).find((p) => p.slug === slug) ?? null;
   }
 
   async listOffers(partnerId?: string): Promise<Offer[]> {
-    return seed.offers.filter(
+    return this.mine(seed.offers).filter(
       (o) => o.active && (!partnerId || o.partnerId === partnerId),
     );
   }
 
   async getOffer(id: string): Promise<Offer | null> {
-    return seed.offers.find((o) => o.id === id) ?? null;
+    return this.mine(seed.offers).find((o) => o.id === id) ?? null;
   }
 
   async listRedemptions(filter: { membershipId?: string; partnerId?: string }) {
@@ -234,8 +258,8 @@ export class DemoRepository implements Repository {
         )
       : null;
 
-    return store()
-      .redemptions.filter(
+    return this.mine(store().redemptions)
+      .filter(
         (r) =>
           (!filter.membershipId || r.membershipId === filter.membershipId) &&
           (!offerIds || offerIds.has(r.offerId)),
@@ -246,6 +270,8 @@ export class DemoRepository implements Repository {
   async createRedemption(offerId: string, membershipId: string): Promise<Redemption> {
     const offer = await this.getOffer(offerId);
     if (!offer) throw new Error("Oferta não encontrada.");
+    // Oferta desativada (como as fictícias da POC) não gera código novo.
+    if (!offer.active) throw new Error("Este benefício não está mais disponível.");
 
     const used = store().redemptions.filter(
       (r) =>
@@ -260,7 +286,7 @@ export class DemoRepository implements Repository {
 
     const redemption: Redemption = {
       id: uid(),
-      tenantId: seed.TENANT_ID,
+      tenantId: this.tenantId,
       offerId,
       membershipId,
       code: generateRedemptionCode(),
@@ -275,7 +301,7 @@ export class DemoRepository implements Repository {
 
   async validateRedemption(code: string, partnerId: string): Promise<ValidationResult> {
     const normalized = code.trim().toUpperCase();
-    const redemption = store().redemptions.find((r) => r.code === normalized);
+    const redemption = this.mine(store().redemptions).find((r) => r.code === normalized);
     if (!redemption) return { ok: false, reason: "Código não encontrado." };
 
     const offer = await this.getOffer(redemption.offerId);
@@ -302,7 +328,40 @@ export class DemoRepository implements Repository {
       ok: true,
       redemption,
       offer,
-      memberName: profile?.fullName ?? "Membro MJ CLUB",
+      memberName: profile?.fullName ?? "Membro do clube",
     };
+  }
+}
+
+/** Plataforma em memória. As barbearias podem ser trocadas nos testes. */
+export class DemoPlatform implements PlatformRepository {
+  constructor(private tenants: Tenant[] = seed.tenants) {}
+
+  async getTenantBySlug(slug: string): Promise<Tenant | null> {
+    return this.tenants.find((t) => t.slug === slug && t.active) ?? null;
+  }
+
+  async listTenants(): Promise<Tenant[]> {
+    return this.tenants
+      .filter((t) => t.active)
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }
+
+  async createLead(lead: NewLead): Promise<void> {
+    store().leads.push({ ...lead, id: uid(), createdAt: new Date().toISOString() });
+  }
+
+  async countRecentLeads(filter: {
+    sinceISO: string;
+    ipHash?: string | null;
+    whatsapp?: string;
+  }): Promise<number> {
+    const since = ms(filter.sinceISO);
+    return store().leads.filter(
+      (l) =>
+        ms(l.createdAt) >= since &&
+        ((filter.ipHash && l.ipHash === filter.ipHash) ||
+          (filter.whatsapp && l.whatsapp === filter.whatsapp)),
+    ).length;
   }
 }

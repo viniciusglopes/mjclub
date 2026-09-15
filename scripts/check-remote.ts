@@ -89,8 +89,11 @@ async function main() {
   await expect("staff", 3, "profissionais");
   await expect("work_schedules", 14, "faixas de horário");
   await expect("plans", 3, "planos do clube");
-  await expect("partners", 6, "parceiros");
-  await expect("offers", 6, "ofertas");
+  // Contagem inclui os desativados: os 6 fictícios da POC seguem no banco com
+  // active = false (15/09). Parceiro real entra pelo admin do MJCLUB (fase 3).
+  await expect("partners", 0, "parceiros");
+  await expect("offers", 0, "ofertas");
+  await expect("leads_barbearias", 0, "interessados (página do produto)");
 
   // Tabelas que existem mas nascem vazias: só confirmamos que foram criadas.
   for (const t of ["appointments", "memberships", "redemptions", "profiles"]) {

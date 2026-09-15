@@ -1,11 +1,17 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import { generateMemberCode, generateRedemptionCode, REDEMPTION_TTL_MS } from "../codes";
+import {
+  generateMemberCode,
+  generateRedemptionCode,
+  memberCodePrefix,
+  REDEMPTION_TTL_MS,
+} from "../codes";
 import { onlyDigits } from "../format";
 import type {
   Appointment,
   AppointmentStatus,
   Membership,
+  NewLead,
   Offer,
   Partner,
   Plan,
@@ -16,6 +22,7 @@ import type {
   Tenant,
   WorkSchedule,
 } from "../types";
+import type { PlatformRepository } from "./platform";
 import type { NewAppointment, Repository, ValidationResult } from "./repository";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- linhas cruas do Postgres */
@@ -30,6 +37,8 @@ const toTenant = (r: Row): Tenant => ({
   address: r.address,
   timezone: r.timezone,
   brandPrimary: r.brand_primary,
+  // Antes da migration de 15/09 a coluna não existia: ausente = ativa.
+  active: r.active !== false,
 });
 
 const toService = (r: Row): Service => ({
@@ -219,6 +228,7 @@ export class SupabaseRepository implements Repository {
       await this.db
         .from("appointments")
         .select("*")
+        .eq("tenant_id", this.tenantId)
         .eq("staff_id", staffId)
         .in("status", ["pending", "confirmed"])
         .gte("starts_at", `${dateISO}T00:00:00-03:00`)
@@ -312,7 +322,12 @@ export class SupabaseRepository implements Repository {
   }
 
   async getPlan(id: string): Promise<Plan | null> {
-    const { data } = await this.db.from("plans").select("*").eq("id", id).maybeSingle();
+    const { data } = await this.db
+      .from("plans")
+      .select("*")
+      .eq("tenant_id", this.tenantId)
+      .eq("id", id)
+      .maybeSingle();
     return data ? toPlan(data) : null;
   }
 
@@ -342,6 +357,7 @@ export class SupabaseRepository implements Repository {
     const { data } = await this.db
       .from("memberships")
       .select("*")
+      .eq("tenant_id", this.tenantId)
       .eq("member_code", code.trim().toUpperCase())
       .maybeSingle();
     return data ? toMembership(data) : null;
@@ -398,7 +414,7 @@ export class SupabaseRepository implements Repository {
             tenant_id: this.tenantId,
             plan_id: input.planId,
             profile_id: profile.id,
-            member_code: generateMemberCode(),
+            member_code: generateMemberCode(memberCodePrefix((await this.getTenant()).name)),
             status: "active",
             current_period_end: new Date(Date.now() + 30 * 86_400_000).toISOString(),
           })
@@ -436,7 +452,12 @@ export class SupabaseRepository implements Repository {
   }
 
   async getPartner(id: string): Promise<Partner | null> {
-    const { data } = await this.db.from("partners").select("*").eq("id", id).maybeSingle();
+    const { data } = await this.db
+      .from("partners")
+      .select("*")
+      .eq("tenant_id", this.tenantId)
+      .eq("id", id)
+      .maybeSingle();
     return data ? toPartner(data) : null;
   }
 
@@ -461,7 +482,12 @@ export class SupabaseRepository implements Repository {
   }
 
   async getOffer(id: string): Promise<Offer | null> {
-    const { data } = await this.db.from("offers").select("*").eq("id", id).maybeSingle();
+    const { data } = await this.db
+      .from("offers")
+      .select("*")
+      .eq("tenant_id", this.tenantId)
+      .eq("id", id)
+      .maybeSingle();
     return data ? toOffer(data) : null;
   }
 
@@ -481,6 +507,8 @@ export class SupabaseRepository implements Repository {
   async createRedemption(offerId: string, membershipId: string): Promise<Redemption> {
     const offer = await this.getOffer(offerId);
     if (!offer) throw new Error("Oferta não encontrada.");
+    // Oferta desativada (como as fictícias da POC) não gera código novo.
+    if (!offer.active) throw new Error("Este benefício não está mais disponível.");
 
     const { count, error } = await this.db
       .from("redemptions")
@@ -522,6 +550,7 @@ export class SupabaseRepository implements Repository {
     const { data } = await this.db
       .from("redemptions")
       .select("*")
+      .eq("tenant_id", this.tenantId)
       .eq("code", code.trim().toUpperCase())
       .maybeSingle();
     if (!data) return { ok: false, reason: "Código não encontrado." };
@@ -562,7 +591,73 @@ export class SupabaseRepository implements Repository {
       ok: true,
       redemption: toRedemption(updated.data),
       offer,
-      memberName: profile?.fullName ?? "Membro MJ CLUB",
+      memberName: profile?.fullName ?? "Membro do clube",
     };
+  }
+}
+
+/** Dados da plataforma no Postgres. Também usa a service role, só no servidor. */
+export class SupabasePlatform implements PlatformRepository {
+  private db: SupabaseClient;
+
+  constructor(url: string, serviceRoleKey: string) {
+    this.db = createClient(url, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+
+  async getTenantBySlug(slug: string): Promise<Tenant | null> {
+    const { data, error } = await this.db
+      .from("tenants")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    const tenant = toTenant(data);
+    return tenant.active ? tenant : null;
+  }
+
+  async listTenants(): Promise<Tenant[]> {
+    const rows = unwrap(await this.db.from("tenants").select("*").order("name"));
+    return rows.map(toTenant).filter((t: Tenant) => t.active);
+  }
+
+  async createLead(lead: NewLead): Promise<void> {
+    const { error } = await this.db.from("leads_barbearias").insert({
+      nome_barbearia: lead.nomeBarbearia,
+      responsavel: lead.responsavel,
+      whatsapp: lead.whatsapp,
+      cidade: lead.cidade,
+      usuarios: lead.usuarios,
+      ip_hash: lead.ipHash,
+      user_agent: lead.userAgent,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async countRecentLeads(filter: {
+    sinceISO: string;
+    ipHash?: string | null;
+    whatsapp?: string;
+  }): Promise<number> {
+    const countBy = async (column: "ip_hash" | "whatsapp", value: string) => {
+      const { count, error } = await this.db
+        .from("leads_barbearias")
+        .select("id", { count: "exact", head: true })
+        .eq(column, value)
+        .gte("created_at", filter.sinceISO);
+      if (error) throw new Error(error.message);
+      // `head: true` devolve contagem nula sem erro quando a tabela não existe.
+      // Na dúvida, trata como limite estourado em vez de liberar.
+      if (count === null) throw new Error("Não foi possível conferir o limite de envios.");
+      return count;
+    };
+
+    const [byIp, byPhone] = await Promise.all([
+      filter.ipHash ? countBy("ip_hash", filter.ipHash) : 0,
+      filter.whatsapp ? countBy("whatsapp", filter.whatsapp) : 0,
+    ]);
+    return byIp + byPhone;
   }
 }

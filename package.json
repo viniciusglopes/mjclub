@@ -10,7 +10,8 @@
     "smoke": "tsx scripts/smoke.ts",
     "test:db": "bash scripts/test-migrations.sh",
     "test:driver": "bash scripts/test-driver.sh",
-    "check:remote": "tsx scripts/check-remote.ts"
+    "check:remote": "tsx scripts/check-remote.ts",
+    "test:tenancy": "tsx scripts/tenancy.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

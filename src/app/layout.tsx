@@ -1,52 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
+/**
+ * Layout raiz: só o esqueleto. Cada área põe o próprio cabeçalho —
+ * a página do produto (`(produto)`), o site de cada barbearia (`[slug]`) e as
+ * áreas que ainda são da MJ (`(legado)`).
+ */
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.mjclub.com.br"),
   title: {
-    default: "MJ CLUB — MJ Barbearia",
-    template: "%s · MJ CLUB",
+    default: "MJCLUB — sistema para barbearias com clube de benefícios",
+    template: "%s · MJCLUB",
   },
   description:
-    "Agende seu corte na MJ Barbearia e faça parte do MJ CLUB: cortes e barbas inclusos, prioridade na agenda e vantagens em toda a rede de parceiros.",
+    "Agenda online, equipe, vendas e clientes da sua barbearia num lugar só — com clube de benefícios incluso. R$ 29,90 por usuário ativo por mês.",
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    siteName: "MJ CLUB",
+    siteName: "MJCLUB",
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className="min-h-dvh">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6">{children}</main>
-        <footer className="border-t border-line">
-          <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <p>
-              © {new Date().getFullYear()} MJ CLUB · MJ Barbearia, desde 2018
-            </p>
-            <nav className="flex gap-4">
-              <Link href="/agendar" className="hover:text-gold">
-                Agendar
-              </Link>
-              <Link href="/clube" className="hover:text-gold">
-                Clube
-              </Link>
-              <Link href="/parceiro" className="hover:text-gold">
-                Sou parceiro
-              </Link>
-              <Link href="/admin" className="hover:text-gold">
-                Barbearia
-              </Link>
-            </nav>
-          </div>
-        </footer>
-      </body>
+      <body className="min-h-dvh">{children}</body>
     </html>
   );
 }
