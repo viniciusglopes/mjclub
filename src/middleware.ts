@@ -43,9 +43,14 @@ async function matches(given: string, expected: string): Promise<boolean> {
  */
 function isBackgroundRequest(request: NextRequest): boolean {
   const h = request.headers;
+  // ⚠ `RSC`, `Next-Router-Prefetch` e `?_rsc` NÃO chegam aqui: o Next os tira
+  // do pedido antes do middleware (next/dist/server/web/adapter.js,
+  // FLIGHT_HEADERS). Quem decide é o `Sec-Fetch-Mode`, que o próprio navegador
+  // põe: só `navigate` é abrir a página de verdade. Sem o cabeçalho (curl,
+  // navegador antigo) conta como navegação e pede a senha, como antes.
+  const mode = h.get("sec-fetch-mode");
   return (
-    h.has("rsc") ||
-    h.has("next-router-prefetch") ||
+    (mode !== null && mode !== "navigate") ||
     h.get("purpose") === "prefetch" ||
     (h.get("sec-purpose") ?? "").includes("prefetch")
   );
