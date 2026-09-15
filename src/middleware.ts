@@ -33,6 +33,33 @@ async function matches(given: string, expected: string): Promise<boolean> {
   return diff === 0;
 }
 
+/**
+ * Pedido de fundo do Next (prefetch de `<Link>` ou navegação RSC)?
+ *
+ * 15/09/2026: o rodapé do site da MJ tem links para `/parceiro` e `/admin`. Em
+ * produção o `<Link>` pré-carrega o que aparece na tela; o 401 com
+ * `WWW-Authenticate` desse fetch fazia o NAVEGADOR abrir a caixa de senha na
+ * cara do cliente, só por ele abrir `/mjbarbearia`.
+ */
+function isBackgroundRequest(request: NextRequest): boolean {
+  const h = request.headers;
+  return (
+    h.has("rsc") ||
+    h.has("next-router-prefetch") ||
+    h.get("purpose") === "prefetch" ||
+    (h.get("sec-purpose") ?? "").includes("prefetch")
+  );
+}
+
+/**
+ * Para pedido de fundo: 401 SEM `WWW-Authenticate` (o navegador não pergunta
+ * nada). Quando a pessoa clica de verdade, o Next cai para a navegação normal
+ * da página, e aí a senha é pedida.
+ */
+function denyQuietly(): NextResponse {
+  return new NextResponse("Acesso restrito.", { status: 401 });
+}
+
 function askForCredentials(): NextResponse {
   return new NextResponse("Acesso restrito.", {
     status: 401,
@@ -52,12 +79,16 @@ export async function middleware(request: NextRequest) {
   // servir o painel da barbearia para a internet inteira. Em desenvolvimento
   // libera, para não atrapalhar quem está rodando local.
   if (!user || !password) {
-    if (process.env.NODE_ENV === "production") return askForCredentials();
+    if (process.env.NODE_ENV === "production") {
+      return isBackgroundRequest(request) ? denyQuietly() : askForCredentials();
+    }
     return NextResponse.next();
   }
 
   const header = request.headers.get("authorization");
-  if (!header?.startsWith("Basic ")) return askForCredentials();
+  if (!header?.startsWith("Basic ")) {
+    return isBackgroundRequest(request) ? denyQuietly() : askForCredentials();
+  }
 
   let decoded: string;
   try {

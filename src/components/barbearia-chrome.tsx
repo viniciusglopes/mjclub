@@ -86,10 +86,10 @@ export function BarbeariaFooter({ tenant }: { tenant: Tenant }) {
           </Link>
           {legacy ? (
             <>
-              <Link href="/parceiro" className="hover:text-gold">
+              <Link href="/parceiro" prefetch={false} className="hover:text-gold">
                 Sou parceiro
               </Link>
-              <Link href="/admin" className="hover:text-gold">
+              <Link href="/admin" prefetch={false} className="hover:text-gold">
                 Barbearia
               </Link>
             </>

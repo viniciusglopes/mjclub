@@ -96,7 +96,7 @@ export default async function ParceirosPage({ params }: Props) {
         <div className="mt-5 flex flex-wrap gap-3">
           <ButtonLink href="/">Conhecer o MJCLUB</ButtonLink>
           {isLegacyTenant(tenant) ? (
-            <ButtonLink href="/parceiro" variant="outline">
+            <ButtonLink href="/parceiro" prefetch={false} variant="outline">
               Já sou parceiro
             </ButtonLink>
           ) : null}
