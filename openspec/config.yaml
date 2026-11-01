@@ -1,0 +1,30 @@
+schema: spec-driven
+
+context: |
+  Língua: toda a documentação em português do Brasil; as palavras-chave SHALL/MUST
+  e WHEN/THEN seguem o formato do OpenSpec.
+
+  Propósito: MJCLUB é um SaaS para barbearias com clube de benefícios. A raiz do
+  site é a página comercial do produto; cada barbearia ativa tem site em
+  /<slug>, com agendamento online sem cadastro, planos do clube e benefícios em
+  parceiros. O estágio atual é POC publicada, com a MJ Barbearia como barbearia
+  legada (dona de /entrar, /minha-conta, /admin e /parceiro).
+
+  Stack: Next.js 16 (App Router, Server Components e Server Actions), React 19,
+  TypeScript, Tailwind 4, zod. Banco Supabase (Postgres com RLS), acessado só pelo
+  servidor com a service role. Camada de dados com dois drivers: `supabase` e
+  `demo` (em memória). Deploy em imagem Docker standalone (Node 22) no Coolify.
+
+  Papéis: visitante/cliente (agenda e assina sem login); membro (carteirinha e
+  resgates em /minha-conta); equipe da barbearia (/admin); parceiro (/parceiro);
+  interessado em contratar (formulário da raiz).
+
+  Cuidados:
+  - Não há autenticação real: a sessão é um cookie assinado, sem senha nem OTP.
+    /admin e /parceiro ficam atrás de Basic Auth compartilhado.
+  - A service role ignora RLS: todo acesso do app precisa filtrar por tenant_id.
+  - Tenant público sai do slug a cada requisição; nunca do formulário.
+  - Não há cobrança: assinatura nasce ativa.
+  - Specs descrevem só o que está na branch padrão claude/mjclub-saas-poc-vo6dg9.
+  - Nunca registrar segredo, valor de variável de ambiente ou dado pessoal real;
+    citar só o NOME da variável.
