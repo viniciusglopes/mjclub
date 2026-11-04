@@ -1,0 +1,29 @@
+schema: spec-driven
+
+context: |
+  MJCLUB — SaaS de barbearia + clube de benefícios (domínio mjclub.com.br).
+  Primeiro tenant: MJ Barbearia (slug `mjbarbearia`). Specs em português,
+  descrevendo o comportamento ATUAL do código (POC), não o roadmap.
+
+  Propósito: agendamento online sem cadastro (link compartilhável no WhatsApp)
+  e clube de assinatura que dá desconto na barbearia e em parceiros, com
+  código de resgate validado no balcão. A raiz do site é a página do produto,
+  que capta interesse de outras barbearias; cada barbearia mora em `/<slug>`.
+
+  Stack: Next.js 16 (App Router, Server Actions), React 19, TypeScript,
+  Tailwind v4, zod. Dados via `src/lib/db` com dois drivers de mesma interface:
+  `demo` (memória, seed em `src/lib/db/seed.ts`) e `supabase` (Postgres +
+  PostgREST com service role), escolhido por `SUPABASE_URL` (ou
+  `NEXT_PUBLIC_SUPABASE_URL`) + `SUPABASE_SERVICE_ROLE_KEY`. Migrations e
+  testes de banco em `supabase/`. Imagem Docker standalone (deploy Coolify).
+
+  Papéis: visitante (vitrine, agendar, assinar), membro (carteirinha e
+  resgates em /minha-conta), equipe da barbearia (/admin), parceiro
+  (/parceiro, valida códigos). Áreas logadas usam sessão de POC (cookie HMAC
+  com `POC_SESSION_SECRET`, sem senha/OTP); /admin e /parceiro ficam atrás de
+  Basic Auth (`MJCLUB_ADMIN_USER`/`MJCLUB_ADMIN_PASSWORD`).
+
+  Cuidados: rotas legadas (/entrar, /minha-conta, /admin, /parceiro) ainda são
+  presas à MJ via `MJCLUB_TENANT_ID`; preço sempre recalculado no servidor;
+  fuso fixo America/Sao_Paulo (-03:00); nunca registrar segredo, telefone ou
+  dado pessoal real nas specs; sem cobrança real (assinatura nasce ativa).
