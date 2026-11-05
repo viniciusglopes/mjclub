@@ -1,0 +1,67 @@
+schema: spec-driven
+
+# Contexto do projeto, mostrado à IA ao criar artefatos.
+# Preenchido em 05/11/2026 pela rotina noturna de documentação, lendo o código
+# do commit f324350 (branch claude/mjclub-saas-poc-vo6dg9).
+context: |
+  Projeto: MJCLUB — SaaS para barbearias com agendamento online e clube de
+  benefícios (planos de assinatura + rede de parceiros). É uma POC. A primeira
+  barbearia (tenant) é a MJ Barbearia, em `/mjbarbearia`. A raiz do site é a
+  página do produto MJCLUB, com vitrine de barbearias e formulário de interesse.
+
+  Língua: toda a documentação, as specs e os textos de tela são em português
+  do Brasil. Datas no formato DD/MM/AAAA. Horários sempre em America/Sao_Paulo
+  (offset fixo -03:00 no código).
+
+  Stack:
+  - Next.js 16 (App Router, Server Components e Server Actions), React 19,
+    TypeScript, Tailwind v4, zod para validação. O Next desta versão tem
+    mudanças de API: ler `node_modules/next/dist/docs/` antes de escrever código
+    (regra do AGENTS.md do repositório).
+  - Banco: Postgres no Supabase, com RLS ligada em todas as tabelas. Migrations
+    em `supabase/migrations/`.
+  - Camada de dados em `src/lib/db` com dois drivers de mesma interface:
+    `demo` (em memória, padrão) e `supabase` (ativado quando `SUPABASE_URL` ou
+    `NEXT_PUBLIC_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` existem).
+  - Deploy: imagem Docker (Next standalone, Node 22 Alpine) no Coolify, sonda
+    em `/api/health`.
+
+  Estrutura de rotas (`src/app`):
+  - `(produto)/` — raiz `/`: página do produto, vitrine e formulário de interesse.
+  - `[slug]/` — site público de cada barbearia: início, `agendar`,
+    `agendar/confirmado/[id]`, `clube`, `clube/parceiros`.
+  - `(legado)/` — `/entrar`, `/minha-conta`, `/admin`, `/parceiro`: ainda presas
+    a uma única barbearia (a de `MJCLUB_TENANT_ID` ou a do seed).
+  - `api/health` — sonda de saúde.
+
+  Papéis:
+  - Visitante/cliente: agenda sem cadastro, informando nome e celular.
+  - Membro do clube: assinou um plano; entra em `/minha-conta` pelo celular.
+  - Equipe da barbearia: usa `/admin` (agenda do dia, serviços, membros).
+  - Parceiro: usa `/parceiro` para validar códigos de resgate no balcão.
+  - Barbearia interessada: deixa contato no formulário da página do produto.
+
+  Variáveis de ambiente (citar só o NOME, nunca o valor): `SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `POC_SESSION_SECRET`,
+  `MJCLUB_ADMIN_USER`, `MJCLUB_ADMIN_PASSWORD`, `MJCLUB_TENANT_ID`.
+
+  Cuidados:
+  - A POC NÃO tem autenticação real: a sessão é um cookie assinado, sem senha
+    nem OTP. `/admin` e `/parceiro` ficam atrás de Basic Auth compartilhado.
+  - Não há cobrança: assinar um plano cria a assinatura já ativa.
+  - A service role ignora RLS: só pode ser usada no servidor, nunca com prefixo
+    `NEXT_PUBLIC_`, nunca em commit, log ou documentação.
+  - O tenant sempre sai do slug da URL, resolvido no servidor a cada
+    requisição; nunca confiar em `tenantId` vindo de formulário.
+  - Preço e desconto são sempre recalculados no servidor.
+  - Slugs de `src/lib/slugs.ts` (RESERVED_SLUGS) nunca podem virar barbearia.
+  - Parceiros e ofertas fictícios da POC estão desativados (não apagados).
+  - Os planos reais do clube são por cota (ex.: "1 corte por semana") e o schema
+    só representa desconto percentual; hoje a cota é controlada manualmente.
+  - Nunca escrever segredo, telefone, CPF ou nome de cliente final real nas specs.
+
+rules:
+  specs:
+    - Escrever em português; descrever o comportamento atual do código, não planos.
+    - Cada requisito usa SHALL ou MUST e tem ao menos um cenário com WHEN/THEN.
+    - Registrar a data e o commit de origem ao acrescentar ou alterar um requisito.
