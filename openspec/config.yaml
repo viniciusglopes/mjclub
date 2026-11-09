@@ -1,0 +1,41 @@
+schema: spec-driven
+
+# Contexto do projeto, lido pela IA ao criar artefatos.
+# Specs e changes são escritas em português, descrevendo o comportamento ATUAL
+# do código (não planos). Criado em 08/11/2026 pela rotina noturna OpenSpec.
+context: |
+  Propósito: MJCLUB é um SaaS de barbearia + clube de benefícios. Cada barbearia
+  (tenant) ganha um site em mjclub.com.br/<slug> com agendamento online sem
+  cadastro e um clube de assinatura com carteirinha digital; a raiz do site é a
+  página do produto MJCLUB, com vitrine de barbearias e formulário de interesse
+  ("Cadastrar minha barbearia"). Primeiro tenant: MJ Barbearia (slug mjbarbearia).
+  Estado: POC (fase 1). Sem autenticação real, sem cobrança, sem gateway.
+
+  Stack: Next.js 16 (App Router, Server Actions, Node runtime), React 19,
+  TypeScript, Tailwind v4, zod. Banco: Postgres no Supabase com RLS em todas as
+  tabelas. Camada de dados plugável em src/lib/db: driver `demo` (memória,
+  seed em src/lib/db/seed.ts) e driver `supabase` (ativado quando SUPABASE_URL
+  ou NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY existem). Deploy em
+  Docker (Next standalone) no Coolify, com sonda em /api/health.
+
+  Papéis: visitante (agenda e vê vitrine), membro do clube (carteirinha,
+  resgates em /minha-conta), equipe da barbearia (/admin), parceiro (/parceiro).
+  Na POC a sessão é um cookie HMAC assinado com POC_SESSION_SECRET, sem senha
+  nem OTP; /admin e /parceiro ficam atrás de Basic Auth (MJCLUB_ADMIN_USER e
+  MJCLUB_ADMIN_PASSWORD) no middleware.
+
+  Cuidados:
+  - Nunca gravar segredo ou dado pessoal real nas specs; citar só o NOME da
+    variável de ambiente.
+  - O tenant do site público vem SEMPRE do slug da URL, resolvido por requisição;
+    o formulário nunca diz qual tenantId gravar. Slugs reservados (src/lib/slugs.ts)
+    nunca viram barbearia.
+  - /entrar, /minha-conta, /admin e /parceiro ainda são da MJ Barbearia
+    (tenant legado via MJCLUB_TENANT_ID ou o id do seed).
+  - Preço de membro calculado em um lugar só (src/lib/pricing.ts) e recalculado
+    no servidor ao confirmar agendamento; o preço fica congelado no agendamento.
+  - Horários usam offset fixo -03:00 (America/Sao_Paulo), nunca `Z`.
+  - Parceiros e ofertas fictícios do seed estão DESATIVADOS no banco real
+    (migration 20260915182219); em produção a vitrine de parceiros tende a
+    estar vazia.
+  - Commits e mensagens em português.
