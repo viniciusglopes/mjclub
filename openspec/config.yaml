@@ -1,0 +1,61 @@
+schema: spec-driven
+
+# Contexto do projeto, lido pela IA ao criar artefatos.
+# Preenchido em 11/11/2026 pela rotina noturna OpenSpec a partir do código da
+# branch claude/mjclub-saas-poc-vo6dg9. Toda a documentação em openspec/ é em
+# português e descreve o comportamento ATUAL do código, não planos.
+context: |
+  Propósito
+  - MJCLUB: SaaS de barbearia (agenda online) + clube de benefícios (planos de
+    assinatura e rede de parceiros com resgate por código no balcão).
+  - A raiz do site (mjclub.com.br) é a página do produto, com vitrine das
+    barbearias e formulário de interesse. Cada barbearia tem o próprio site em
+    mjclub.com.br/<slug>. O primeiro tenant é a MJ Barbearia (slug `mjbarbearia`).
+  - Estado: POC publicada. NÃO há autenticação real (sessão é cookie assinado,
+    sem senha/OTP), NÃO há cobrança (assinatura nasce ativa) e os planos reais
+    são por cota (ex.: "1 corte por semana"), que o schema ainda não modela
+    (todos com discount_percent = 0; controle de cota é manual na barbearia).
+
+  Stack
+  - Next.js 16 (App Router, Server Components e Server Actions), React 19,
+    TypeScript, Tailwind v4, zod. Imagem Docker standalone (`node server.js`,
+    porta 3000) publicada via Coolify. Banco: Postgres no Supabase (sa-east-1).
+  - Camada de dados plugável em src/lib/db: driver `demo` (em memória, seed em
+    src/lib/db/seed.ts) e driver `supabase` (service role, só no servidor).
+    O driver é escolhido em tempo de execução pela presença de SUPABASE_URL
+    (ou NEXT_PUBLIC_SUPABASE_URL) e SUPABASE_SERVICE_ROLE_KEY.
+  - Grupos de rotas: `(produto)` = raiz; `[slug]` = site de cada barbearia
+    (agendar, clube, clube/parceiros); `(legado)` = /entrar, /minha-conta,
+    /admin, /parceiro, que ainda pertencem só ao tenant legado (MJ).
+  - Horários sempre no offset fixo -03:00 (America/Sao_Paulo), sem biblioteca
+    de fuso. Passo da agenda: 15 min.
+  - Verificação: `npm run smoke` (driver demo), `npm run test:tenancy`
+    (slugs/tenancy), `npm run test:db` (migrations + RLS num Postgres
+    descartável), `npm run test:driver` (driver supabase contra PostgREST
+    local), `npm run check:remote` (só leitura, projeto real).
+
+  Papéis
+  - Visitante: lê vitrine, agenda sem cadastro, assina plano, deixa interesse.
+  - Membro do clube: entra por telefone em /entrar, vê carteirinha, agenda e
+    gera códigos de resgate em /minha-conta.
+  - Equipe da barbearia: /admin (agenda do dia, status, membros), atrás de
+    Basic Auth (MJCLUB_ADMIN_USER / MJCLUB_ADMIN_PASSWORD).
+  - Parceiro: /parceiro valida códigos no balcão; também atrás do Basic Auth.
+
+  Cuidados
+  - Nunca gravar segredo ou dado pessoal real nas specs: cite só o NOME das
+    variáveis (POC_SESSION_SECRET, SUPABASE_SERVICE_ROLE_KEY, MJCLUB_ADMIN_*,
+    MJCLUB_TENANT_ID). A service role ignora RLS e só pode existir no servidor.
+  - O tenantId nunca vem do formulário: no site público sai do slug da URL,
+    resolvido de novo em cada Server Action; nas áreas legadas vem de
+    MJCLUB_TENANT_ID ou do seed.
+  - Preço é recalculado no servidor na reserva e congelado no agendamento.
+  - Slugs reservados (src/lib/slugs.ts) nunca viram barbearia.
+  - Convenção de commits: mensagens em português descrevendo o porquê.
+
+rules:
+  specs:
+    - Escrever em português, descrevendo o comportamento atual do código.
+    - Cada Requirement usa SHALL/MUST e tem pelo menos um Scenario WHEN/THEN.
+    - Registrar a data e o commit quando algo for acrescentado ou alterado.
+    - Nunca copiar token, senha, chave, URL com credencial, telefone, CPF ou nome de cliente final.
