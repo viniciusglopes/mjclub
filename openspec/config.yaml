@@ -1,0 +1,40 @@
+schema: spec-driven
+
+# Contexto do projeto (lido pela IA ao criar artefatos)
+context: |
+  MJCLUB — SaaS de barbearia + clube de benefícios (mjclub.com.br).
+  POC em produção com Next.js 16 (App Router), React 19, TypeScript, Tailwind v4,
+  zod. Banco Postgres no Supabase, acessado só pelo servidor com a service role.
+  Deploy em imagem Docker (standalone) no Coolify; health em /api/health.
+
+  Estrutura:
+  - `/` (grupo `(produto)`): página do MJCLUB como produto, vitrine das barbearias
+    ativas e formulário "Cadastrar minha barbearia" (leads).
+  - `/[slug]`: site de cada barbearia (home, /agendar, /clube, /clube/parceiros).
+    O tenant é resolvido pelo slug a cada requisição; slug reservado, inexistente
+    ou inativo dá 404.
+  - Grupo `(legado)`: /entrar, /minha-conta, /admin e /parceiro ainda são só da
+    MJ Barbearia (tenant de `MJCLUB_TENANT_ID` ou do seed).
+  - `src/lib/db`: Repository por tenant + PlatformRepository, com drivers `demo`
+    (memória) e `supabase`, trocados pela presença de `SUPABASE_URL` e
+    `SUPABASE_SERVICE_ROLE_KEY`.
+
+  Papéis: visitante (agenda sem cadastro), membro do clube (telefone), equipe da
+  barbearia (painel /admin), parceiro (valida códigos em /parceiro).
+
+  Cuidados:
+  - A POC NÃO tem autenticação real: sessão é cookie assinado (POC_SESSION_SECRET),
+    e /admin e /parceiro ficam atrás de Basic Auth (MJCLUB_ADMIN_USER/PASSWORD).
+  - Não há cobrança: assinar um plano já cria a membership ativa.
+  - Os planos reais são por cota (cortes por período); o schema só representa
+    desconto percentual e hoje todos têm discount_percent = 0.
+  - Preço é recalculado no servidor; o formulário nunca manda valor.
+  - Nunca documentar segredos nem dados pessoais reais; citar só o NOME das
+    variáveis de ambiente.
+  - Specs e changes em português.
+
+rules:
+  specs:
+    - Descrever o comportamento atual do código, não planos
+    - Cada requisito com SHALL/MUST e ao menos um cenário WHEN/THEN
+    - Citar o arquivo-fonte quando ajudar a localizar a regra
