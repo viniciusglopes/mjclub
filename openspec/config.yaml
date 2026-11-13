@@ -1,0 +1,44 @@
+schema: spec-driven
+
+# Contexto do projeto, lido pela IA ao criar artefatos.
+# Documentação em português. Criado em 13/11/2026 pela rotina noturna OpenSpec,
+# a partir do código da branch claude/mjclub-saas-poc-vo6dg9.
+context: |
+  MJCLUB — SaaS de barbearia + clube de benefícios (mjclub.com.br).
+  POC multi-tenant: a raiz é a página do produto MJCLUB e cada barbearia
+  vive em /<slug> (ex.: /mjbarbearia). Primeiro tenant: MJ Barbearia.
+
+  Stack: Next.js 16 (App Router, Server Actions, output standalone),
+  React 19, TypeScript, Tailwind v4, Zod 4, Supabase (Postgres + RLS).
+  Deploy em container Docker (node:22-alpine) via Coolify; health em /api/health.
+
+  Camada de dados plugável em src/lib/db: driver `demo` (memória, seed
+  TypeScript) quando não há variáveis do Supabase; driver `supabase` quando
+  SUPABASE_URL (ou NEXT_PUBLIC_SUPABASE_URL) e SUPABASE_SERVICE_ROLE_KEY
+  existem. O servidor grava com a service role; nada fala com o Supabase
+  pelo navegador.
+
+  Papéis: visitante (vitrine, agendamento sem cadastro, formulário de
+  interesse), membro do clube (carteirinha, resgates), equipe da barbearia
+  (agenda do dia em /admin), parceiro (valida código no balcão em /parceiro).
+
+  Cuidados:
+  - A POC NÃO tem autenticação real: sessão é cookie assinado por
+    POC_SESSION_SECRET, sem senha nem OTP. /admin e /parceiro ficam atrás de
+    Basic Auth (MJCLUB_ADMIN_USER / MJCLUB_ADMIN_PASSWORD).
+  - /entrar, /minha-conta, /admin e /parceiro ainda são de um tenant fixo
+    (MJCLUB_TENANT_ID ou o do seed). O site público resolve o tenant pelo slug.
+  - Planos reais do MJ CLUB são por COTA (cortes por semana/mês); o schema só
+    representa desconto percentual, por isso discount_percent = 0 e a cota é
+    controlada manualmente. Não há cobrança: assinar já cria membership ativa.
+  - Nunca documentar valores de variáveis de ambiente, chaves ou dados
+    pessoais. Citar só o NOME da variável.
+  - Specs descrevem o comportamento ATUAL do código, em português.
+
+rules:
+  specs:
+    - Escrever em português, no formato OpenSpec (Purpose, Requirements com SHALL/MUST, Scenarios WHEN/THEN)
+    - Descrever o que o código faz hoje, nunca planos ou roadmap como fato
+    - Registrar a data quando acrescentar ou alterar comportamento
+  proposal:
+    - Incluir uma seção "Fora de escopo"
